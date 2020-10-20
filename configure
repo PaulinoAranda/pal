@@ -2066,7 +2066,12 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 ac_config_headers="$ac_config_headers config.h"
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/pal/Makefile src/jpal/Makefile doc/Makefile doc/Doxyfile tests/Makefile tests/problems/Makefile tests/problems/DenseMap/Makefile tests/problems/DenseRect/Makefile tests/problems/HardGrid/Makefile tests/problems/MunichDrillholes/Makefile tests/problems/RailwayStation/Makefile tests/problems/RandomMap/Makefile tests/problems/RandomRect/Makefile tests/problems/RegularGrid/Makefile tests/problems/SwissCities/Makefile tests/problems/SwissCities/p4/Makefile tests/problems/SwissCities/p8/Makefile tests/problems/VariableDensity/Makefile libpal.pc"
+
+
+#ac_config_files="$ac_config_files Makefile src/Makefile src/pal/Makefile src/jpal/Makefile doc/Makefile doc/Doxyfile tests/Makefile tests/problems/Makefile tests/problems/DenseMap/Makefile tests/problems/DenseRect/Makefile tests/problems/HardGrid/Makefile tests/problems/MunichDrillholes/Makefile tests/problems/RailwayStation/Makefile tests/problems/RandomMap/Makefile tests/problems/RandomRect/Makefile tests/problems/RegularGrid/Makefile tests/problems/SwissCities/Makefile tests/problems/SwissCities/p4/Makefile tests/problems/SwissCities/p8/Makefile tests/problems/VariableDensity/Makefile libpal.pc"
+
+
+ac_config_files="$ac_config_files Makefile src/Makefile src/pal/Makefile src/jpal/Makefile doc/Makefile doc/Doxyfile tests/Makefile  libpal.pc"
 
 
 VERSION_MAJOR=0
@@ -20432,7 +20437,7 @@ else
 fi
 
 
- if test "$TESTING" == yes; then
+ if test "$TESTING" == no; then
   ENABLE_TEST_TRUE=
   ENABLE_TEST_FALSE='#'
 else
@@ -22565,19 +22570,19 @@ do
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
     "doc/Doxyfile") CONFIG_FILES="$CONFIG_FILES doc/Doxyfile" ;;
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
-    "tests/problems/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/Makefile" ;;
-    "tests/problems/DenseMap/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/DenseMap/Makefile" ;;
-    "tests/problems/DenseRect/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/DenseRect/Makefile" ;;
-    "tests/problems/HardGrid/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/HardGrid/Makefile" ;;
-    "tests/problems/MunichDrillholes/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/MunichDrillholes/Makefile" ;;
-    "tests/problems/RailwayStation/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/RailwayStation/Makefile" ;;
-    "tests/problems/RandomMap/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/RandomMap/Makefile" ;;
-    "tests/problems/RandomRect/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/RandomRect/Makefile" ;;
-    "tests/problems/RegularGrid/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/RegularGrid/Makefile" ;;
-    "tests/problems/SwissCities/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/SwissCities/Makefile" ;;
-    "tests/problems/SwissCities/p4/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/SwissCities/p4/Makefile" ;;
-    "tests/problems/SwissCities/p8/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/SwissCities/p8/Makefile" ;;
-    "tests/problems/VariableDensity/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/VariableDensity/Makefile" ;;
+ #   "tests/problems/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/Makefile" ;;
+ #   "tests/problems/DenseMap/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/DenseMap/Makefile" ;;
+ #   "tests/problems/DenseRect/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/DenseRect/Makefile" ;;
+ #   "tests/problems/HardGrid/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/HardGrid/Makefile" ;;
+ #   "tests/problems/MunichDrillholes/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/MunichDrillholes/Makefile" ;;
+ #   "tests/problems/RailwayStation/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/RailwayStation/Makefile" ;;
+ #   "tests/problems/RandomMap/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/RandomMap/Makefile" ;;
+ #   "tests/problems/RandomRect/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/RandomRect/Makefile" ;;
+ #   "tests/problems/RegularGrid/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/RegularGrid/Makefile" ;;
+ #   "tests/problems/SwissCities/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/SwissCities/Makefile" ;;
+ #   "tests/problems/SwissCities/p4/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/SwissCities/p4/Makefile" ;;
+ #   "tests/problems/SwissCities/p8/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/SwissCities/p8/Makefile" ;;
+ #   "tests/problems/VariableDensity/Makefile") CONFIG_FILES="$CONFIG_FILES tests/problems/VariableDensity/Makefile" ;;
     "libpal.pc") CONFIG_FILES="$CONFIG_FILES libpal.pc" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
 
@@ -22633,7 +22638,8 @@ $debug ||
 if test -n "$CONFIG_FILES"; then
 
 
-ac_cr=''
+ac_cr='
+'
 ac_cs_awk_cr=`$AWK 'BEGIN { print "a\rb" }' </dev/null 2>/dev/null`
 if test "$ac_cs_awk_cr" = "a${ac_cr}b"; then
   ac_cs_awk_cr='\\r'
