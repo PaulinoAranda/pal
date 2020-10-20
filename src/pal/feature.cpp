@@ -28,7 +28,7 @@
 #endif
 
 #define _CRT_SECURE_NO_DEPRECATE
-
+//#define _DEBUG_FULL_
 
 #if defined(_VERBOSE_) || (_DEBUG_)
 #include <iostream>
@@ -74,7 +74,7 @@ namespace pal {
         x = feat->x;
         y = feat->y;
 
-
+        alphaPAu =0;
         int i;
 
 
@@ -124,6 +124,9 @@ namespace pal {
         }
 
         delete accessMutex;
+        //PAu
+//        delete userGeom;
+//        userGeom=NULL;
     }
 
     Layer *Feature::getLayer() {
@@ -165,8 +168,8 @@ namespace pal {
         int icost = 0;
         int inc = 2;
 
-        double alpha;
-        double beta = 2 * M_PI / nbp; /* angle bw 2 pos */
+        double alpha = alphaPAu;
+        double beta = 2. * M_PI / (double)nbp; /* angle bw 2 pos */
 
         // uncomment for Wolff 2 position model test on RailwayStation
         //if (nbp==2)
@@ -180,17 +183,17 @@ namespace pal {
         double lx, ly; /* label pos */
 
         /* various alpha */
-        double a90  = M_PI / 2;
+        double a90  = M_PI / 2.;
         double a180 = M_PI;
         double a270 = a180 + a90;
-        double a360 = 2 * M_PI;
+        double a360 = 2. * M_PI;
 
 
         double gamma1, gamma2;
 
         if (distlabel > 0) {
-            gamma1 = atan2 (yrm / 2, distlabel + xrm / 2);
-            gamma2 = atan2 (xrm / 2, distlabel + yrm / 2);
+            gamma1 = atan2 (yrm / 2., distlabel + xrm / 2.);
+            gamma2 = atan2 (xrm / 2., distlabel + yrm / 2.);
         } else {
             gamma1 = gamma2 = a90 / 3.0;
         }
@@ -207,14 +210,39 @@ namespace pal {
             std::cout << "Oups... label size error..." << std::endl;
         }
 
-        *lPos = new LabelPosition *[nbp];
 
-        for (i = 0, alpha = M_PI / 4;i < nbp;i++, alpha += beta) {
+        *lPos = new LabelPosition *[nbp];
+//        std::cout << "Oups... alpha..  "<<alpha << std::endl;
+
+//TODO PAu
+//        if(alpha==0){
+//            if(direccion)
+//                alpha = M_PI / 4;
+//            else
+//                alpha =  a90 + M_PI / 4;
+//        }
+        bool direcionBis= true;
+        if(direccion){
+            if( !((alpha >  M_PI / 4.) && (alpha< M_PI + M_PI / 4.)))
+                direcionBis=false;
+        }else{
+            if( !((alpha >  a90 + M_PI/4.) && (alpha< M_PI + a90 + M_PI / 4.)))
+                direcionBis=false;
+        }
+
+
+ 
+
+
+//        for (i = 0, alpha = M_PI / 4;i < nbp;i++, alpha += beta) {
+        for (i = 0;i < nbp;i++, (direcionBis?alpha -= beta:alpha += beta)) {
             lx = x;
             ly = y;
 
             if (alpha > a360)
                 alpha -= a360;
+            if (alpha < 0)
+                alpha += a360;
 
             if (alpha < gamma1 || alpha > a360 - gamma1) {  // on the right
                 lx += distlabel;
@@ -223,13 +251,13 @@ namespace pal {
                     iota -= a360;
 
                 //ly += -yrm/2.0 + tan(alpha)*(distlabel + xrm/2);
-                ly += -yrm + yrm * iota / (2 * gamma1);
+                ly += -yrm + yrm * iota / (2. * gamma1);
             } else if (alpha < a90 - gamma2) {  // top-right
                 lx += distlabel * cos (alpha);
                 ly += distlabel * sin (alpha);
             } else if (alpha < a90 + gamma2) { // top
                 //lx += -xrm/2.0 - tan(alpha+a90)*(distlabel + yrm/2);
-                lx += -xrm * (alpha - a90 + gamma2) / (2 * gamma2) ;
+                lx += -xrm * (alpha - a90 + gamma2) / (2. * gamma2) ;
                 ly += distlabel;
             } else if (alpha < a180 - gamma1) {  // top left
                 lx += distlabel * cos (alpha) - xrm;
@@ -237,27 +265,48 @@ namespace pal {
             } else if (alpha < a180 + gamma1) { // left
                 lx += -distlabel - xrm;
                 //ly += -yrm/2.0 - tan(alpha)*(distlabel + xrm/2);
-                ly += - (alpha - a180 + gamma1) * yrm / (2 * gamma1);
+                ly += - (alpha - a180 + gamma1) * yrm / (2. * gamma1);
             } else if (alpha < a270 - gamma2) { // down - left
                 lx += distlabel * cos (alpha) - xrm;
                 ly += distlabel * sin (alpha) - yrm;
             } else if (alpha < a270 + gamma2) { // down
                 ly += -distlabel - yrm;
                 //lx += -xrm/2.0 + tan(alpha+a90)*(distlabel + yrm/2);
-                lx += -xrm + (alpha - a270 + gamma2) * xrm / (2 * gamma2);
+                lx += -xrm + (alpha - a270 + gamma2) * xrm / (2. * gamma2);
             } else if (alpha < a360) {
                 lx += distlabel * cos (alpha);
                 ly += distlabel * sin (alpha) - yrm;
+            }else{
+                std::cout << "Oups... alpha..  "<<alpha << std::endl;
+
             }
 
             double cost;
-
-            if (nbp == 1)
+ 
+           if (nbp == 1){
                 cost = 0.0001;
-            else
-                cost =  0.0001 + 0.0020 * double (icost) / double (nbp - 1);
+            }else{
+                if(i==1){
+                    if(direcionBis){
+                        if(( direccion && !((( M_PI/4. -beta/2. + a360)<= (alpha +beta+ a360)) && ((alpha +beta+ a360) <= (M_PI/4.+beta/2.+ a360))) ) ||
+                                (!direccion && !(( (a90 + M_PI / 4. -beta/2.+ a360 )<= (alpha+beta + a360)) &&  ((alpha+beta+ a360) <= (a90 + M_PI / 4. +beta/2. + a360) ))))
+                             cost = 0.0001;
+                         else
+                             cost =  0.0002 + 0.0020 * double (icost) / double (nbp - 1);
+                   }else{
+                       if(( direccion && !((( M_PI/4. -beta/2. + a360)<= (alpha -beta+ a360)) && ((alpha -beta+ a360) <= (M_PI/4.+beta/2.+ a360))) ) ||
+                                (!direccion && !(( (a90 + M_PI / 4. -beta/2.+ a360 )<= (alpha-beta + a360)) &&  ((alpha-beta+ a360) <= (a90 + M_PI / 4. +beta/2. + a360) ))))
+                             cost = 0.0001;
+                         else
+                             cost =  0.0002 + 0.0020 * double (icost) / double (nbp - 1);
 
-            (*lPos) [i] = new LabelPosition (i, lx, ly, xrm, yrm, 0, cost,  this);
+                   }
+
+                }else{
+                    cost =  0.0002 + 0.0020 * double (icost) / double (nbp - 1);
+                }
+            }
+            (*lPos) [i] = new LabelPosition (i, lx, ly, xrm, yrm, 0, alpha, cost,  this);
 
             icost += inc;
 
@@ -271,6 +320,7 @@ namespace pal {
 
         }
 
+//         alphaPAu = alpha;
         return nbp;
     }
 
@@ -407,15 +457,15 @@ namespace pal {
             std::cout << "  Create new label" << std::endl;
 #endif
             if (layer->arrangement == P_LINE_AROUND) {
-                positions->push_back (new LabelPosition (i, bx + cos (beta) *distlabel , by + sin (beta) *distlabel, xrm, yrm, alpha, cost, this)); // Line
-                positions->push_back (new LabelPosition (i, bx - cos (beta) * (distlabel + yrm) , by - sin (beta) * (distlabel + yrm), xrm, yrm, alpha, cost, this)); // Line
+                positions->push_back (new LabelPosition (i, bx + cos (beta) *distlabel , by + sin (beta) *distlabel, xrm, yrm, alpha, alphaPAu, cost, this)); // Line
+                positions->push_back (new LabelPosition (i, bx - cos (beta) * (distlabel + yrm) , by - sin (beta) * (distlabel + yrm), xrm, yrm, alpha, alphaPAu, cost, this)); // Line
             }
             /*else if (layer->arrangement == P_HORIZ){ // TODO add P_HORIZ
                positions->push_back (new LabelPosition (i, bx -yrm/2, by - yrm*sin(beta)/2, xrm, yrm, alpha, cost, this, line)); // Line
               line->aliveCandidates++;
             }*/
             else {
-                positions->push_back (new LabelPosition (i, bx - yrm*cos (beta) / 2, by - yrm*sin (beta) / 2, xrm, yrm, alpha, cost, this)); // Line
+                positions->push_back (new LabelPosition (i, bx - yrm*cos (beta) / 2, by - yrm*sin (beta) / 2, xrm, yrm, alpha, alphaPAu, cost, this)); // Line
             }
 
             l += dist;
@@ -535,16 +585,20 @@ namespace pal {
             do {
                 for (bbid = 0;bbid < j;bbid++) {
                     CHullBox *box = boxes[bbid];
-
+/*
                     if ( (box->length * box->width) > (xmax - xmin) * (ymax - ymin) *5) {
                         std::cout << "Very Large BBOX (should never occurs : bug-report please)" << std::endl;
                         std::cout << "   Box size:  " << box->length << "/" << box->width << std::endl;
                         std::cout << "   Alpha:     " << alpha << "   " << alpha * 180 / M_PI << std::endl;
                         std::cout << "   Dx;Dy:     " << dx << "   " << dy  << std::endl;
                         std::cout << "   LabelSizerm: " << xrm << "   " << yrm  << std::endl;
-                        std::cout << "   LabelSizeUn: " << label_x << "   " << label_y << std::endl;
-                        continue;
+                        std::cout << "   LabelSizeUn: " << label_x << "   " << label_y << std::endl;                       
+			std::cout << "   xmax: " << xmax << "  xmin " << xmin << std::endl;
+			std::cout << "   ymax: " << ymax << "  ymax " << ymax << std::endl;
+
+             //           continue;
                     }
+*/
 
 #ifdef _DEBUG_FULL_
                     std::cout << "New BBox : " << bbid << std::endl;
@@ -601,7 +655,6 @@ namespace pal {
                     dlx = cos (beta) * diago;
                     dly = sin (beta) * diago;
 
-
                     double px0, py0;
 
                     px0 = box->width / 2.0;
@@ -621,7 +674,7 @@ namespace pal {
 
                             // Only accept candidate that center is in the polygon
                             if (isPointInPolygon (mapShape->nbPoints, mapShape->x, mapShape->y, rx,  ry)) {
-                                positions->push_back (new LabelPosition (0, rx - dlx, ry - dly , xrm, yrm, alpha, 0.0001, this)); // Polygon
+                                positions->push_back (new LabelPosition (0, rx - dlx, ry - dly , xrm, yrm, alpha, alphaPAu, 0.0001, this)); // Polygon
                             }
                         }
                     }
@@ -717,6 +770,7 @@ namespace pal {
             break;
         case GEOS_LINESTRING:
             nbp = setPositionForLine (scale, lPos, mapShape, delta);
+//            releaseCoordinates();
             break;
 
         case GEOS_POLYGON:
@@ -725,13 +779,16 @@ namespace pal {
                 double cx, cy;
                 mapShape->getCentroid (cx, cy);
                 nbp = setPositionForPoint (cx, cy, scale, lPos, delta);
+//                releaseCoordinates();
                 break;
             case P_LINE:
             case P_LINE_AROUND:
                 nbp = setPositionForLine (scale, lPos, mapShape, delta);
+//                releaseCoordinates();
                 break;
             default:
                 nbp = setPositionForPolygon (scale, lPos, mapShape, delta);
+//                releaseCoordinates();
                 break;
             }
         }
@@ -761,9 +818,11 @@ namespace pal {
     void Feature::fetchCoordinates() {
         accessMutex->lock();
         layer->pal->tmpTime -= clock();
-        if (!x && !y) {
+        if (!x && !y && userGeom !=NULL) {
             //std::cout << "fetch feat " << layer->name << "/" << uid << std::endl;
+
             the_geom = userGeom->getGeosGeometry();
+            if(the_geom !=NULL){
             LinkedList<Feat*> *feats = splitGeom (the_geom, this->uid);
             int id = 0;
             while (feats->size() > 0) {
@@ -798,6 +857,7 @@ namespace pal {
             }
             delete feats;
         }
+    }
         currentAccess++;
         layer->pal->tmpTime += clock();
         accessMutex->unlock();

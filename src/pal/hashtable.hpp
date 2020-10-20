@@ -163,7 +163,8 @@ namespace pal {
             delete entry;
             return NULL;
         } else {
-            if ( (cell = e->search (entry)) == NULL) {
+            cell = e->search (entry);
+            if ( cell == NULL) {
                 delete[] entry->_key;
                 delete entry;
                 return NULL;
@@ -198,30 +199,87 @@ namespace pal {
 
     template <typename Data>
     bool HashTable<Data>::removeElement (const char * key) {
-        // TODO: Remove the element that has this key from the hash table.
-        // Return true if the entry is found or false otherwise.
-        /*int i = hash(key);
-        HashTableEntry<Data> *eC = _buckets[i];
-        HashTableEntry<Data> *eP = NULL;
 
-        while(eC != NULL && strcmp(key, eC->_key) != 0)
-        {
-          eP = eC;
-          eC = eC->_next;
+
+        unsigned long i = hash (key);
+
+        HashTableEntry<Data> * entry = new HashTableEntry<Data> ();
+        entry->_key = new char[strlen (key) +1];
+        strcpy (entry->_key, key);
+
+        LinkedList<HashTableEntry<Data>*> *e = _hashtable[i];
+
+//        Cell<HashTableEntry<Data>*> *cell;
+
+        if (e) {
+//            Cell<HashTableEntry<Data>*> *elem =  e->search (entry);
+            e->remove(entry);
+            e->~LinkedList();
+            e=_hashtable[i]=NULL;
+             delete[] entry->_key;
+             delete entry;
+            return true;
+
+        }else{
+            delete[] entry->_key;
+             delete entry;
+            return false;
         }
 
-        //key is found
-        if(eC != NULL)
-        {
-          if(eP != NULL)
-            eP->_next = eC->_next;
-          else
-            _buckets[i] = eC->_next;
-          return true;
-        }
+//        unsigned long i = hash (key);
+//
+//         LinkedList<HashTableEntry<Data>*> *e = _hashtable[i];
+//
+//         HashTableEntry<Data> *entry = new HashTableEntry<Data>();
+//         entry->_key = new char[strlen (key) +1];
+//         strcpy (entry->_key, key);
+//         entry->_data = data;
+//
+//         if (e) {
+//             Cell<HashTableEntry<Data>*> *elem = e->search (entry);
+//             if (elem) { // change data
+//                 elem->item->_data = data;
+//                 delete[] entry->_key;
+//                 delete entry;
+//             } else {
+//                 e->push_back (entry);
+//                 return true;
+//             }
+//         } else {
+//             e = _hashtable[i] = new LinkedList<HashTableEntry<Data>*> (hashEntryCompare);
+//             e->push_back (entry);
+//             return true;
+//         }
+//
 
-        //key is not found*/
-        return false;
+
+
+
+//
+//        // TODO: Remove the element that has this key from the hash table.
+//        // Return true if the entry is found or false otherwise.
+//        int i = hash(key);
+//        HashTableEntry<Data> *eC = _buckets[i];
+//        HashTableEntry<Data> *eP = NULL;
+//
+//        while(eC != NULL && strcmp(key, eC->_key) != 0)
+//        {
+//          eP = eC;
+//          eC = eC->_next;
+//        }
+//
+//        //key is found
+//        if(eC != NULL)
+//        {
+//          if(eP != NULL)
+//            eP->_next = eC->_next;
+//          else
+//            _buckets[i] = eC->_next;
+//          return true;
+//        }
+//
+//        //key is not found*/
+//        return false;
     }
 
 

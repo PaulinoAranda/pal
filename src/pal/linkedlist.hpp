@@ -205,16 +205,20 @@ namespace pal {
             if (compare (item, p->item)) {
                 first = p->next;
                 s--;
-                delete p;
+//                PAu
+//                delete p;
                 return;
             }
-            while (p->next && !compare (p->next->item, item)) {p = p->next;}
+            while (p->next && !compare (p->next->item, item)) {
+                p = p->next;
+            }
 
             if (p->next) {
                 q = p->next;
                 p->next = q->next;
                 s--;
-                delete q;
+//                PAu
+//                delete q;
                 if (!p->next)
                     last = p;
             }

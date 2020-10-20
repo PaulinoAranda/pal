@@ -48,7 +48,10 @@ namespace pal {
      */
     class LabelPosition {
 
-        friend bool extractFeatCallback (Feature *ft_ptr, void*ctx);
+
+
+        private:
+         friend bool extractFeatCallback (Feature *ft_ptr, void*ctx);
         friend bool xGrow (void *l, void *r);
         friend bool yGrow (void *l, void *r);
         friend bool xShrink (void *l, void *r);
@@ -74,7 +77,8 @@ namespace pal {
         friend class Problem;
         friend class Feature;
         friend double dist_pointToLabel (double, double, LabelPosition*);
-    private:
+
+        private:
         //LabelPosition **overlaped;
         //int nbOverlap;
 
@@ -84,6 +88,9 @@ namespace pal {
         double x[4], y[4];
 
         double alpha;
+        double alphaPAu;
+
+
         Feature *feature;
 
         // bug # 1 (maxence 10/23/2008)
@@ -96,6 +103,8 @@ namespace pal {
 
         //LabelPosition (int id, double x1, double y1, double w, double h, double cost, Feature *feature);
         //LabelPosition (int id, int nbPart, double *x, double *y, double *alpha,
+
+
 
         /**
          * \brief create a new LabelPosition
@@ -111,7 +120,7 @@ namespace pal {
          */
         LabelPosition (int id, double x1, double y1,
                        double w, double h,
-                       double alpha, double cost,
+                       double alpha, double alphaPAu, double cost,
                        Feature *feature);
 
         /**
@@ -181,6 +190,9 @@ namespace pal {
          * \return alpha to rotate text (in rad)
          */
         double getAlpha();
+
+//        double getAlphaPAu();
+
         /**
          * \brief get the position geographical cost
          * \return geographical cost

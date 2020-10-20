@@ -275,7 +275,7 @@ namespace pal {
         void registerFeature (const char *geom_id, PalGeometry *userGeom, double label_x =-1, double label_y = -1);
 
         // TODO implement
-        //void unregisterFeature (const char *geom_id);
+        void unregisterFeature (const char *geom_id);
 
         // TODO call that when a geometry change (a moveing points, etc)
         //void updateFeature();
@@ -290,7 +290,8 @@ namespace pal {
          * @throws PalException::UnknownFeature
          * @throws PalException::ValueNotInRange
          */
-        void setFeatureLabelSize (const char *geom_id, double label_x, double label_y);
+//        void setFeatureLabelSize (const char *geom_id, double label_x, double label_y, bool direccion);
+        void setFeatureLabelSize (const char *geom_id, double label_x, double label_y, bool direccion, double alphaPAu);
 
         /**
          * \brief get the label height for a specific feature

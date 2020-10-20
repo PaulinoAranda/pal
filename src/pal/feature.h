@@ -68,6 +68,10 @@ namespace pal {
         friend bool filteringCallback (PointSet*, void*);
 
     protected:
+
+        double alphaPAu;
+
+        bool direccion;
         //int id;   /* feature no id into layer */
         double label_x;
         double label_y;
@@ -142,7 +146,7 @@ namespace pal {
           * \param part which part of the collection is this feature for ?
           * \param nPart how many feats have same uid (MULTI..., Collection)
           */
-        Feature (Feat *feat, Layer *layer, int part, int nPart, PalGeometry *userGeom);
+        Feature (Feat *feat, Layer *layer, int part, int nPart, PalGeometry *userGeom );
 
 
         /**
@@ -192,7 +196,7 @@ namespace pal {
 #ifdef _EXPORT_MAP_
                          , std::ofstream &svgmap
 #endif
-                        );
+                          );
 
         /**
          * \brief get the unique id of the feature

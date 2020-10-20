@@ -54,6 +54,12 @@
 #include "simplemutex.h"
 #include "util.h"
 
+#undef _VERBOSE_
+#undef _DEBUG_FULL_
+#undef _DEBUG_
+
+
+
 namespace pal {
 
     typedef struct {
@@ -96,7 +102,7 @@ namespace pal {
         setSearch (CHAIN);
 
         dpi = 72;
-        point_p = 8;
+        point_p = 8*2;
         line_p = 8;
         poly_p = 8;
 
@@ -208,6 +214,7 @@ namespace pal {
 
         double min[2];
         double max[2];
+        bool direccion =ft_ptr->direccion;;
 
         FeatCallBackCtx *context = (FeatCallBackCtx*) ctx;
 
@@ -220,6 +227,7 @@ namespace pal {
 #ifdef _DEBUG_FULL_
         std::cout << "extract feat : " << ft_ptr->layer->name << "/" << ft_ptr->uid << std::endl;
 #endif
+
 
         // all feature which are obstacle will be inserted into obstacles
         if (context->layer->obstacle) {
@@ -327,7 +335,7 @@ namespace pal {
 #ifdef _EXPORT_MAP_
                                                          , *context->svgmap
 #endif
-                                                        );
+                                                       );
 
                     delete ft->shape;
                     ft->shape = NULL;
@@ -357,6 +365,8 @@ namespace pal {
         }
         return true;
     }
+
+
 
 
     double dist_pointToLabel (double xp, double yp, LabelPosition *lp) {
@@ -733,8 +743,9 @@ namespace pal {
 
         Feats *feat;
 
+#ifdef _VERBOSE_
         std::cout << "NbFt : " << prob->nbft << std::endl;
-
+#endif
         // Filtering label positions against obstacles
         amin[0] = amin[1] = -DBL_MAX;
         amax[0] = amax[1] = DBL_MAX;

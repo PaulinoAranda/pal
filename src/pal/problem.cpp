@@ -56,6 +56,9 @@
 #include "priorityqueue.h"
 
 
+#undef _VERBOSE_
+#undef _DEBUG_FULL_
+#undef _DEBUG_
 
 namespace pal {
 

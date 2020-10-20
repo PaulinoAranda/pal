@@ -28,7 +28,7 @@
 #endif
 
 #include "geomfunction.h"
-
+#include  <limits>
 //#include <pal/Layer.h>
 
 #include "feature.h"
@@ -303,6 +303,16 @@ namespace pal {
         return false;
     }
 
+
+    inline bool qgsDoubleNear( double a, double b, double epsilon = 4 * std::numeric_limits<double>::epsilon() )
+    {
+      if ( std::isnan( a ) || std::isnan( b ) )
+        return std::isnan( a ) && std::isnan( b ) ;
+
+      const double diff = a - b;
+      return diff > -epsilon && diff <= epsilon;
+    }
+
     /*
      * \brief compute the point wherre two lines intersects
      * \return true if the ok false if line are parallel
@@ -322,12 +332,25 @@ namespace pal {
         b2 = x3 - x4;
         c2 = x4 * y3 - x3 * y4;
 
-        if ( (denom = a1 * b2 - a2 * b1) == 0) {
-            return false;
-        } else {
-            *x = (b1 * c2 - b2 * c1) / denom;
-            *y = (a2 * c1 - a1 * c2) / denom;
-        }
+
+        denom = a1 * b2 - a2 * b1;
+         if ( qgsDoubleNear( denom, 0.0 ) )
+         {
+           return false;
+         }
+         else
+         {
+           *x = ( b1 * c2 - b2 * c1 ) / denom;
+           *y = ( a2 * c1 - a1 * c2 ) / denom;
+         }
+
+
+//        if ( (denom = a1 * b2 - a2 * b1) == 0) {
+//            return false;
+//        } else {
+//            *x = (b1 * c2 - b2 * c1) / denom;
+//            *y = (a2 * c1 - a1 * c2) / denom;
+//        }
 
         return true;
 

@@ -28,6 +28,7 @@
 #endif
 
 #define _CRT_SECURE_NO_DEPRECATE
+//#define _DEBUG_FULL_
 
 #include <stddef.h>
 #include <geos_c.h>
@@ -63,7 +64,7 @@ namespace pal {
         //sprintf (rtreeFile, "%s.rtree", lyrName);
 
         rtree = new RTree<Feature*, double, 2, double>();
-        hashtable = new HashTable<Cell<Feature*>*> (5281);
+        hashtable = new HashTable<Cell<Feature*>*> (5281000); // PAu 5281
 
         if (defaultPriority < 0.0001)
             this->defaultPriority = 0.0001;
@@ -284,9 +285,18 @@ void Layer::registerFeature (const char *geom_id, PalGeometry *userGeom, double 
             throw new PalException::FeatureExists();
             return;
         }
-
+        if(userGeom==NULL){
+            modMutex->unlock();
+            throw new PalException::ValueNotInRange;
+            return;
+        }
         /* Split MULTI GEOM and Collection in simple geometries*/
         GEOSGeometry *the_geom = userGeom->getGeosGeometry();
+        if(the_geom==NULL){
+             modMutex->unlock();
+             throw new PalException::ValueNotInRange;
+             return;
+         }
 
         LinkedList<Feat*> *finalQueue = splitGeom (the_geom, geom_id);
 
@@ -372,6 +382,37 @@ void Layer::registerFeature (const char *geom_id, PalGeometry *userGeom, double 
     modMutex->unlock();
 }
 
+void Layer::unregisterFeature (const char *geom_id){
+
+    modMutex->lock();
+    Cell<Feature*>** it = hashtable->find (geom_id);
+    if (it) {
+      double bmin[2];
+      double bmax[2];
+      bmin[0] = (*it)->item->xmin;
+      bmin[1] = (*it)->item->ymin;
+
+      bmax[0] = (*it)->item->xmax;
+      bmax[1] = (*it)->item->ymax;
+//      std::cout << "rtree->Remove..." <<  rtree->Count() << std::endl;
+      rtree->Remove(bmin, bmax, (*it)->item);
+//      std::cout << "rtree->Remove..." <<  rtree->Count() << std::endl;
+
+//      hashtable->printStat();
+      bool rok = hashtable->removeElement(geom_id);
+//      std::cout << "hashtable->Remove..."<< rok<< std::endl;
+//      hashtable->printStat();
+
+//      std::cout << "features->Remove..." << features->size() << std::endl;
+      features->remove((*it)->item);
+//      std::cout << "features->Remove..." << features->size() << std::endl;
+
+delete((*it)->item);
+    }
+
+    modMutex->unlock();
+}
+
 
 Cell<Feature*>* Layer::getFeatureIt (const char * geom_id) {
     Cell<Feature*>** it = hashtable->find (geom_id);
@@ -429,7 +470,8 @@ int Layer::getFeatureDistlabel (const char *geom_id) {
     return ret;
 }
 
-void Layer::setFeatureLabelSize (const char * geom_id, double label_x, double label_y) {
+//void Layer::setFeatureLabelSize (const char * geom_id, double label_x, double label_y, bool direccion) {
+    void Layer::setFeatureLabelSize (const char *geom_id, double label_x, double label_y, bool direccion, double alphaPAu){
     int i;
 
     if (label_x < 0 || label_y < 0) {
@@ -449,6 +491,8 @@ void Layer::setFeatureLabelSize (const char * geom_id, double label_x, double la
             feat = it->item;
             feat->label_x = label_x;
             feat->label_y = label_y;
+            feat->direccion =direccion;
+            feat->alphaPAu =alphaPAu;
             it = it->next;
         }
     } else {

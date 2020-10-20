@@ -30,6 +30,8 @@
 #ifndef _LABEL_H
 #define _LABEL_H
 
+using std::size_t;
+
 namespace pal {
 
     class LabelPosition;
@@ -46,6 +48,7 @@ namespace pal {
         double y[4];
 
         double a;
+        double alphaPAu;
 
         char *featureId;
         char *lyrName;
@@ -62,13 +65,14 @@ namespace pal {
          * @param lyrName name of the corresponding layer
          * @param userGeom PalGeometry of the feature
          */
-        Label (double x[4], double y[4], double alpha, const char *ftid, const char *lyrName, PalGeometry *userGeom);
+        Label (double x[4], double y[4], double alpha, const char *ftid, const char *lyrName, PalGeometry *userGeom, double alphaPAu);
 
     public:
         /**
          * \brief delete a label
          */
         ~Label();
+
 
         /**
          * \brief return the down-left x coordinate
@@ -101,6 +105,8 @@ namespace pal {
          * @return alpha in rad, couterclockwise
          */
         double getRotation();
+
+        double getAlphaPAu();
 
         /**
          * \brief return the name of the layer wich contains the feature
