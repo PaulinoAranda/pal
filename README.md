@@ -8,3 +8,5 @@ This website represents a platform with the main focus to federate and bring tog
 Both the library and the community platform have been initiated by School of Business and Engineering Vaud, member of University Of Applied Sciences Western Switzerland (see more information about the initial project team).
 
 Current version 0.2
+
+http://pal.heig-vd.ch/
