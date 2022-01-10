@@ -8,3 +8,7 @@ This website represents a platform with the main focus to federate and bring tog
 Both the library and the community platform have been initiated by School of Business and Engineering Vaud, member of University Of Applied Sciences Western Switzerland (see more information about the initial project team).
 
 Current version 0.2
+
+
+https://user-images.githubusercontent.com/36703215/148760968-aaa15c32-d097-4002-bd68-79d9bbaf0404.mp4
+
