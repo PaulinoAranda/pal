@@ -67,11 +67,19 @@ namespace pal {
         friend bool releaseCallback (PointSet *pset, void *ctx);
         friend bool filteringCallback (PointSet*, void*);
 
+    public:
+        /**
+               * \brief Delete the feature
+               */
+               ~Feature();
+
     protected:
 
         double alphaPAu;
 
         bool direccion;
+        bool stoped;
+
         //int id;   /* feature no id into layer */
         double label_x;
         double label_y;
@@ -156,10 +164,7 @@ namespace pal {
         */
         Feature (std::ifstream *file, Layer *layer);
 
-        /**
-         * \brief Delete the feature
-         */
-        virtual ~Feature();
+
 
         /**
          * \brief return the feature id

@@ -291,7 +291,7 @@ namespace pal {
          * @throws PalException::ValueNotInRange
          */
 //        void setFeatureLabelSize (const char *geom_id, double label_x, double label_y, bool direccion);
-        void setFeatureLabelSize (const char *geom_id, double label_x, double label_y, bool direccion, double alphaPAu);
+        void setFeatureLabelSize (const char *geom_id, double label_x, double label_y, bool direccion, double alphaPAu, bool stoped=false);
 
         /**
          * \brief get the label height for a specific feature

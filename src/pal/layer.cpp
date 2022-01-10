@@ -37,7 +37,6 @@
 #include <cstring>
 #include <cmath>
 
-
 #include <pal/pal.h>
 #include <pal/layer.h>
 #include <pal/palexception.h>
@@ -53,146 +52,149 @@
 
 namespace pal {
 
-    Layer::Layer (const char *lyrName, double min_scale, double max_scale, Arrangement arrangement, Units label_unit, double defaultPriority, bool obstacle, bool active, bool toLabel, Pal *pal) :  pal (pal), obstacle (obstacle), active (active), toLabel (toLabel), label_unit (label_unit), min_scale (min_scale), max_scale (max_scale), arrangement (arrangement) {
+Layer::Layer(const char *lyrName, double min_scale, double max_scale,
+		Arrangement arrangement, Units label_unit, double defaultPriority,
+		bool obstacle, bool active, bool toLabel, Pal *pal) :
+		pal(pal), obstacle(obstacle), active(active), toLabel(toLabel), label_unit(
+				label_unit), min_scale(min_scale), max_scale(max_scale), arrangement(
+				arrangement) {
 
-        this->name = new char[strlen (lyrName) +1];
-        strcpy (this->name, lyrName);
+	this->name = new char[strlen(lyrName) + 1];
+	strcpy(this->name, lyrName);
 
-        modMutex = new SimpleMutex();
+	modMutex = new SimpleMutex();
 
-        //rtreeFile = new char[strlen(lyrName)+7];
-        //sprintf (rtreeFile, "%s.rtree", lyrName);
+	//rtreeFile = new char[strlen(lyrName)+7];
+	//sprintf (rtreeFile, "%s.rtree", lyrName);
 
-        rtree = new RTree<Feature*, double, 2, double>();
-        hashtable = new HashTable<Cell<Feature*>*> (5281000); // PAu 5281
+	rtree = new RTree<Feature*, double, 2, double>();
+	hashtable = new HashTable<Cell<Feature*>*>(5381); // PAu 5281
 
-        if (defaultPriority < 0.0001)
-            this->defaultPriority = 0.0001;
-        else if (defaultPriority > 1.0)
-            this->defaultPriority = 1.0;
-        else
-            this->defaultPriority = defaultPriority;
+	if (defaultPriority < 0.0001)
+		this->defaultPriority = 0.0001;
+	else if (defaultPriority > 1.0)
+		this->defaultPriority = 1.0;
+	else
+		this->defaultPriority = defaultPriority;
 
-        features = new LinkedList<Feature*> (ptrFeatureCompare);
-    }
+	features = new LinkedList<Feature*>(ptrFeatureCompare);
+}
 
-    Layer::~Layer() {
-        modMutex->lock();
+Layer::~Layer() {
+	modMutex->lock();
 
-        if (features) {
-            while (features->size()) {
-                delete features->pop_front();
-            }
-            delete features;
-        }
+	if (features) {
+		while (features->size()) {
+			delete features->pop_front();
+		}
+		delete features;
+	}
 
-        if (name)
-            delete[] name;
+	if (name)
+		delete[] name;
 
-        delete rtree;
+	if (rtree)
+		delete rtree;
+	if (hashtable)
+		delete hashtable;
+	if (modMutex)
+		delete modMutex;
+}
 
-        delete hashtable;
-        delete modMutex;
-    }
+/*
+ Feature *Layer::getFeature(int i){
+ if (i<0 || i >=int(features->size()))
+ return NULL;
+ return features->at(i);
+ }*/
 
-    /*
-    Feature *Layer::getFeature(int i){
-       if (i<0 || i >=int(features->size()))
-          return NULL;
-       return features->at(i);
-    }*/
-
-
-    bool Layer::isScaleValid (double scale) {
-        return (scale >= min_scale || min_scale == -1)
-               && (scale <= max_scale || max_scale == -1);
-    }
-
+bool Layer::isScaleValid(double scale) {
+	return (scale >= min_scale || min_scale == -1)
+			&& (scale <= max_scale || max_scale == -1);
+}
 
 // PUBLIC method !
-    int Layer::getNbFeatures() {
-        return features->size();
-    }
+int Layer::getNbFeatures() {
+	return features->size();
+}
 
 // TODO avoid :
 // first -> name = layer->getName()
 // then  -> layer->rename("...");
 // so -> name is broken !!!
-    void Layer::rename (char *name) {
-        if (name && strlen (this->name) > 0) {
-            delete[] this->name;
-            name = new char[strlen (name) +1];
-            strcpy (this->name, name);
-        }
-    }
+void Layer::rename(char *name) {
+	if (name && strlen(this->name) > 0) {
+		delete[] this->name;
+		this->name = new char[strlen(name) + 1];
+		strcpy(this->name, name);
+	}
+}
 
 // TODO see rename()
-    const char *Layer::getName() {
-        return name;
-    }
+const char* Layer::getName() {
+	return name;
+}
 
-    Arrangement Layer::getArrangement() {
-        return arrangement;
-    }
+Arrangement Layer::getArrangement() {
+	return arrangement;
+}
 
-    void Layer::setArrangement (Arrangement arrangement) {
-        this->arrangement = arrangement;
-    }
+void Layer::setArrangement(Arrangement arrangement) {
+	this->arrangement = arrangement;
+}
 
+bool Layer::isObstacle() {
+	return obstacle;
+}
 
-    bool Layer::isObstacle() {
-        return obstacle;
-    }
+bool Layer::isToLabel() {
+	return toLabel;
+}
 
-    bool Layer::isToLabel() {
-        return toLabel;
-    }
+bool Layer::isActive() {
+	return active;
+}
 
-    bool Layer::isActive() {
-        return active;
-    }
+double Layer::getMinScale() {
+	return min_scale;
+}
 
+double Layer::getMaxScale() {
+	return max_scale;
+}
 
-    double Layer::getMinScale() {
-        return min_scale;
-    }
+double Layer::getPriority() {
+	return defaultPriority;
+}
 
-    double Layer::getMaxScale() {
-        return max_scale;
-    }
+void Layer::setObstacle(bool obstacle) {
+	this->obstacle = obstacle;
+}
 
-    double Layer::getPriority() {
-        return defaultPriority;
-    }
+void Layer::setActive(bool active) {
+	this->active = active;
+}
 
-    void Layer::setObstacle (bool obstacle) {
-        this->obstacle = obstacle;
-    }
+void Layer::setToLabel(bool toLabel) {
+	this->toLabel = toLabel;
+}
 
-    void Layer::setActive (bool active) {
-        this->active = active;
-    }
+void Layer::setMinScale(double min_scale) {
+	this->min_scale = min_scale;
+}
 
-    void Layer::setToLabel (bool toLabel) {
-        this->toLabel = toLabel;
-    }
+void Layer::setMaxScale(double max_scale) {
+	this->max_scale = max_scale;
+}
 
-    void Layer::setMinScale (double min_scale) {
-        this->min_scale = min_scale;
-    }
-
-    void Layer::setMaxScale (double max_scale) {
-        this->max_scale = max_scale;
-    }
-
-    void Layer::setPriority (double priority) {
-        if (priority >= 1.0) // low priority
-            defaultPriority = 1.0;
-        else if (priority <= 0.0001)
-            defaultPriority = 0.0001; // high priority
-        else
-            defaultPriority = priority;
-    }
+void Layer::setPriority(double priority) {
+	if (priority >= 1.0) // low priority
+		defaultPriority = 1.0;
+	else if (priority <= 0.0001)
+		defaultPriority = 0.0001; // high priority
+	else
+		defaultPriority = priority;
+}
 
 #if 0
 //inline Feat *splitButterflyPolygon (Feat *f, int pt_a, int pt_b, double cx, double cy){
@@ -273,355 +275,386 @@ namespace pal {
 }
 #endif
 
-void Layer::registerFeature (const char *geom_id, PalGeometry *userGeom, double label_x, double label_y) {
-    int j;
+void Layer::registerFeature(const char *geom_id, PalGeometry *userGeom,
+		double label_x, double label_y) {
+	int j;
 
-    if (geom_id && label_x >= 0 && label_y >= 0) {
-        modMutex->lock();
-        j = features->size();
+	if (geom_id && label_x >= 0 && label_y >= 0) {
+		modMutex->lock();
+		j = features->size();
 
-        if (hashtable->find (geom_id)) {
-            modMutex->unlock();
-            throw new PalException::FeatureExists();
-            return;
-        }
-        if(userGeom==NULL){
-            modMutex->unlock();
-            throw new PalException::ValueNotInRange;
-            return;
-        }
-        /* Split MULTI GEOM and Collection in simple geometries*/
-        GEOSGeometry *the_geom = userGeom->getGeosGeometry();
-        if(the_geom==NULL){
-             modMutex->unlock();
-             throw new PalException::ValueNotInRange;
-             return;
-         }
+		if (hashtable->find(geom_id)) {
+			modMutex->unlock();
+			throw new PalException::FeatureExists();
+			return;
+		}
+		if (userGeom == NULL) {
+			modMutex->unlock();
+			throw new PalException::ValueNotInRange;
+			return;
+		}
+		/* Split MULTI GEOM and Collection in simple geometries*/
+		GEOSGeometry *the_geom = userGeom->getGeosGeometry();
+		if (the_geom == NULL) {
+			modMutex->unlock();
+			throw new PalException::ValueNotInRange;
+			return;
+		}
 
-        LinkedList<Feat*> *finalQueue = splitGeom (the_geom, geom_id);
+		LinkedList<Feat*> *finalQueue = splitGeom(the_geom, geom_id);
 
-        int nGeom = finalQueue->size();
-        int part = 0;
+		int nGeom = finalQueue->size();
+		int part = 0;
 
-        bool first_feat = true;
+		bool first_feat = true;
 
-        while (finalQueue->size() > 0) {
-            Feat *f = finalQueue->pop_front();
+		while (finalQueue->size() > 0) {
+			Feat *f = finalQueue->pop_front();
 #ifdef _DEBUG_FULL_
             std::cout << "f-> popped" << std::endl;
 #endif
-            Feature *ft;
+			Feature *ft;
 
-            switch (f->type) {
-            case GEOS_POINT:
-            case GEOS_LINESTRING:
-            case GEOS_POLYGON:
-                //case geos::geom::GEOS_POINT:
-                //case geos::geom::GEOS_LINESTRING:
-                //case geos::geom::GEOS_POLYGON:
+			switch (f->type) {
+			case GEOS_POINT:
+			case GEOS_LINESTRING:
+			case GEOS_POLYGON:
+				//case geos::geom::GEOS_POINT:
+				//case geos::geom::GEOS_LINESTRING:
+				//case geos::geom::GEOS_POLYGON:
 
-               // ignore invalid geometries
-               if ( (f->type == GEOS_LINESTRING && f->nbPoints < 2) ||
-                    (f->type == GEOS_POLYGON && f->nbPoints < 3) )
-                   continue;
+				// ignore invalid geometries
+				if ((f->type == GEOS_LINESTRING && f->nbPoints < 2)
+						|| (f->type == GEOS_POLYGON && f->nbPoints < 3))
+					continue;
 
 #ifdef _DEBUG_FULL_
                 std::cout << "Create Feat" << std::endl;
 #endif
-                ft = new Feature (f, this, part, nGeom, userGeom);
-                ft->deleteCoord();
+				ft = new Feature(f, this, part, nGeom, userGeom);
+				ft->deleteCoord();
 #ifdef _DEBUG_FULL_
                 std::cout << "Feature created" << std::endl;
 #endif
-                break;
-            default:
+				break;
+			default:
 #ifdef _VERBOSE_
                 std::cerr << "Wrong geometry type, should never occurs !!" << std::endl;
 #endif
-                exit (-1);
-            }
+				exit(-1);
+			}
 
-            double bmin[2];
-            double bmax[2];
-            bmin[0] = ft->xmin;
-            bmin[1] = ft->ymin;
+			double bmin[2];
+			double bmax[2];
+			bmin[0] = ft->xmin;
+			bmin[1] = ft->ymin;
 
-            bmax[0] = ft->xmax;
-            bmax[1] = ft->ymax;
+			bmax[0] = ft->xmax;
+			bmax[1] = ft->ymax;
 
-            ft->label_x = label_x;
-            ft->label_y = label_y;
+			ft->label_x = label_x;
+			ft->label_y = label_y;
 
-            features->push_back (ft);
+			features->push_back(ft);
 
-            if (first_feat) {
-                hashtable->insertItem (geom_id, features->last);
-                first_feat = false;
-            }
+			if (first_feat) {
+				hashtable->insertItem(geom_id, features->last);
+				first_feat = false;
+			}
 
 #ifdef _DEBUG_FULL_
             std::cout << "Feat box : " << bmin[0] << " " <<  bmin[1] << " " <<  bmax[0] << " " << bmax[1] << std::endl;
 #endif
 
-            rtree->Insert (bmin, bmax, ft);
+			rtree->Insert(bmin, bmax, ft);
+
+//			std::cout << "FT INSETED  " << ft << " Cell  " << features->last
+//					<< " CellItem  " << features->last->item << std::endl;
 
 #ifdef _DEBUG_FULL_
             std::cout << "feature inserted :-)" << std::endl;
 #endif
 
-            delete f;
+			delete f;
 #ifdef _DEBUG_FULL_
             std::cout << "f deleted..." << std::endl;
 #endif
-            part++;
-        }
-        delete finalQueue;
+			part++;
+		}
+		delete finalQueue;
 
-        userGeom->releaseGeosGeometry (the_geom);
-    }
-    modMutex->unlock();
+		userGeom->releaseGeosGeometry(the_geom);
+	}
+	modMutex->unlock();
 }
 
-void Layer::unregisterFeature (const char *geom_id){
+void Layer::unregisterFeature(const char *geom_id) {
+//	std::cout << "unregisterFeature " << std::endl;
 
-    modMutex->lock();
-    Cell<Feature*>** it = hashtable->find (geom_id);
-    if (it) {
-      double bmin[2];
-      double bmax[2];
-      bmin[0] = (*it)->item->xmin;
-      bmin[1] = (*it)->item->ymin;
+	modMutex->lock();
+	Cell<Feature*> **it = hashtable->find(geom_id);
+//
+//	std::cout << "hashtable->find ..." << it << "  " << (*it) << " "
+//			<< (*it)->item << std::endl;
 
-      bmax[0] = (*it)->item->xmax;
-      bmax[1] = (*it)->item->ymax;
-//      std::cout << "rtree->Remove..." <<  rtree->Count() << std::endl;
-      rtree->Remove(bmin, bmax, (*it)->item);
-//      std::cout << "rtree->Remove..." <<  rtree->Count() << std::endl;
+	if (it && (*it)) {
 
-//      hashtable->printStat();
-      bool rok = hashtable->removeElement(geom_id);
-//      std::cout << "hashtable->Remove..."<< rok<< std::endl;
-//      hashtable->printStat();
+		Feature *fet = (*it)->item;
+		double bmin[2];
+		double bmax[2];
+		bmin[0] = (*it)->item->xmin;
+		bmin[1] = (*it)->item->ymin;
 
-//      std::cout << "features->Remove..." << features->size() << std::endl;
-      features->remove((*it)->item);
-//      std::cout << "features->Remove..." << features->size() << std::endl;
+		bmax[0] = (*it)->item->xmax;
+		bmax[1] = (*it)->item->ymax;
+//      std::cout << "hashtable->find ..."<< it<<  "  "<< (*it)<< " " << (*it)->item << std::endl;
 
-delete((*it)->item);
-    }
+//      std::cout << "1features->Remove..." << features->size() << "  "<< (*it)->item<< std::endl;
+//      std::cout << "2features->Remove..." << features->size() <<  "  "<< (*it)->item<< " fet "<<fet<<std::endl;
 
-    modMutex->unlock();
+//		std::cout << "1rtree->Remove..." << rtree->Count() << " item "
+//				<< (*it)->item << " fet " << fet << std::endl;
+//		fet->print();
+		rtree->Remove(bmin, bmax, fet);
+//		fet->print();
+
+//		hashtable->printStat();
+
+		bool rok = hashtable->removeElement(geom_id);
+
+//		std::cout << "hashtable->Remove..." << rok << " item " << (*it)->item
+//				<< std::endl;
+//		hashtable->printStat();
+
+//		std::cout << "2rtree->Remove..." << rtree->Count() << "  "
+//				<< (*it)->item << " fet " << fet << std::endl;
+		features->remove(fet);
+//		fet->print();
+
+//            if((*it)->item)
+//            	delete((*it)->item);
+
+		if (fet)
+			delete (fet);
+//              if(*it)
+//            	  delete (*it);
+
+	}
+
+	modMutex->unlock();
 }
 
+Cell<Feature*>* Layer::getFeatureIt(const char *geom_id) {
+	Cell<Feature*> **it = hashtable->find(geom_id);
 
-Cell<Feature*>* Layer::getFeatureIt (const char * geom_id) {
-    Cell<Feature*>** it = hashtable->find (geom_id);
-
-    if (it)
-        return *it;
-    else
-        return NULL;
+	if (it)
+		return *it;
+	else
+		return NULL;
 }
 
-void Layer::setFeatureDistlabel (const char * geom_id, int distlabel) {
-    int i;
+void Layer::setFeatureDistlabel(const char *geom_id, int distlabel) {
+	int i;
 
-    if (distlabel < 0) {
-        std::cerr << "setFeatureDistlabel :  invalid size : " << distlabel << std::endl;
-        throw new PalException::ValueNotInRange();
-        return;
-    }
+	if (distlabel < 0) {
+		std::cerr << "setFeatureDistlabel :  invalid size : " << distlabel
+				<< std::endl;
+		throw new PalException::ValueNotInRange();
+		return;
+	}
 
-    modMutex->lock();
-    Cell<Feature*>* it = getFeatureIt (geom_id);
+	modMutex->lock();
+	Cell<Feature*> *it = getFeatureIt(geom_id);
 
-    if (it) {
-        // log
-        Feature *feat = it->item;
-        int nb = feat->nPart;
+	if (it) {
+		// log
+		Feature *feat = it->item;
+		int nb = feat->nPart;
 
-        for (i = 0;i < nb;i++) {
-            feat = it->item;
-            feat->distlabel = distlabel;
-            it = it->next;
-        }
-    } else {
-        std::cerr << "setFeatureDistlabel " << geom_id << " not found" << std::endl;
-        modMutex->unlock();
-        throw new PalException::UnknownFeature();
-    }
-    modMutex->unlock();
+		for (i = 0; i < nb; i++) {
+			feat = it->item;
+			feat->distlabel = distlabel;
+			it = it->next;
+		}
+	} else {
+		std::cerr << "setFeatureDistlabel " << geom_id << " not found"
+				<< std::endl;
+		modMutex->unlock();
+		throw new PalException::UnknownFeature();
+	}
+	modMutex->unlock();
 }
 
+int Layer::getFeatureDistlabel(const char *geom_id) {
+	modMutex->lock();
+	Cell<Feature*> *it = getFeatureIt(geom_id);
 
-int Layer::getFeatureDistlabel (const char *geom_id) {
-    modMutex->lock();
-    Cell<Feature*>* it = getFeatureIt (geom_id);
+	int ret = -1;
+	if (it)
+		ret = it->item->distlabel;
+	else {
+		modMutex->unlock();
+		throw new PalException::UnknownFeature();
+	}
 
-    int ret = -1;
-    if (it)
-        ret = it->item->distlabel;
-    else {
-        modMutex->unlock();
-        throw new PalException::UnknownFeature();
-    }
-
-    modMutex->unlock();
-    return ret;
+	modMutex->unlock();
+	return ret;
 }
 
 //void Layer::setFeatureLabelSize (const char * geom_id, double label_x, double label_y, bool direccion) {
-    void Layer::setFeatureLabelSize (const char *geom_id, double label_x, double label_y, bool direccion, double alphaPAu){
-    int i;
+void Layer::setFeatureLabelSize(const char *geom_id, double label_x,
+		double label_y, bool direccion, double alphaPAu, bool stoped) {
+	int i;
 
-    if (label_x < 0 || label_y < 0) {
-        std::cerr << "setFeatureLabelSize :  invalid size : " << label_x << ";" << label_y << std::endl;
-        throw new PalException::ValueNotInRange();
-        return;
-    }
+	if (label_x < 0 || label_y < 0) {
+		std::cerr << "setFeatureLabelSize :  invalid size : " << label_x << ";"
+				<< label_y << std::endl;
+		throw new PalException::ValueNotInRange();
+		return;
+	}
 
-    modMutex->lock();
-    Cell<Feature*>* it = getFeatureIt (geom_id);
+	modMutex->lock();
+	Cell<Feature*> *it = getFeatureIt(geom_id);
 
-    if (it) {
-        Feature *feat = it->item;
-        int nb = feat->nPart;
+	if (it) {
+		Feature *feat = it->item;
+		int nb = feat->nPart;
 
-        for (i = 0;i < nb;i++) {
-            feat = it->item;
-            feat->label_x = label_x;
-            feat->label_y = label_y;
-            feat->direccion =direccion;
-            feat->alphaPAu =alphaPAu;
-            it = it->next;
-        }
-    } else {
-        std::cerr << "setFeaturelabelSizeFeature " << geom_id << " not found" << std::endl;
-        modMutex->unlock();
-        throw new PalException::UnknownFeature();
-    }
-    modMutex->unlock();
+		for (i = 0; i < nb; i++) {
+			feat = it->item;
+			feat->label_x = label_x;
+			feat->label_y = label_y;
+			feat->direccion = direccion;
+			feat->stoped = stoped;
+
+			feat->alphaPAu = alphaPAu;
+			it = it->next;
+		}
+	} else {
+		std::cerr << "setFeaturelabelSizeFeature " << geom_id << " not found"
+				<< std::endl;
+		modMutex->unlock();
+		throw new PalException::UnknownFeature();
+	}
+	modMutex->unlock();
 }
 
-double Layer::getFeatureLabelHeight (const char *geom_id) {
-    modMutex->lock();
-    Cell<Feature*>* it = getFeatureIt (geom_id);
+double Layer::getFeatureLabelHeight(const char *geom_id) {
+	modMutex->lock();
+	Cell<Feature*> *it = getFeatureIt(geom_id);
 
-    double ret = -1;
+	double ret = -1;
 
-    if (it)
-        ret = it->item->label_y;
-    else {
-        modMutex->unlock();
-        throw new PalException::UnknownFeature();
-    }
+	if (it)
+		ret = it->item->label_y;
+	else {
+		modMutex->unlock();
+		throw new PalException::UnknownFeature();
+	}
 
-    modMutex->unlock();
+	modMutex->unlock();
 
-    return ret;
+	return ret;
 }
 
-double Layer::getFeatureLabelWidth (const char *geom_id) {
-    modMutex->lock();
-    Cell<Feature*>* it = getFeatureIt (geom_id);
-    double ret = -1;
+double Layer::getFeatureLabelWidth(const char *geom_id) {
+	modMutex->lock();
+	Cell<Feature*> *it = getFeatureIt(geom_id);
+	double ret = -1;
 
-    if (it)
-        ret = it->item->label_x;
-    else {
-        modMutex->unlock();
-        throw new PalException::UnknownFeature();
-    }
-    modMutex->unlock();
-    return ret;
+	if (it)
+		ret = it->item->label_x;
+	else {
+		modMutex->unlock();
+		throw new PalException::UnknownFeature();
+	}
+	modMutex->unlock();
+	return ret;
 }
 
-    void Layer::setLabelUnit (Units label_unit) {
-        if (label_unit == PIXEL || label_unit == METER)
-            this->label_unit = label_unit;
-    }
+void Layer::setLabelUnit(Units label_unit) {
+	if (label_unit == PIXEL || label_unit == METER)
+		this->label_unit = label_unit;
+}
 
-    Units Layer::getLabelUnit () {
-        return label_unit;
-    }
-
-
+Units Layer::getLabelUnit() {
+	return label_unit;
+}
 
 /*
-void Layer::setFeatureGeom (const char * geom_id, const char *the_geomHex){
+ void Layer::setFeatureGeom (const char * geom_id, const char *the_geomHex){
 
 
-   Cell<Feature*>* it = getFeatureIt (geom_id);
+ Cell<Feature*>* it = getFeatureIt (geom_id);
 
-   if (it){
-      double bmin[2];
-      double bmax[2];
+ if (it){
+ double bmin[2];
+ double bmax[2];
 
-      int oldnPart = it->item->nPart;
-      int nPart;
+ int oldnPart = it->item->nPart;
+ int nPart;
 
-      //geos::io::WKBReader wkbReader =  geos::io::WKBReader();
+ //geos::io::WKBReader wkbReader =  geos::io::WKBReader();
 
-      geos::io::WKBReader * wkbReader = new geos::io::WKBReader();
+ geos::io::WKBReader * wkbReader = new geos::io::WKBReader();
 
-      std::string str = the_geomHex;
-      std::istream *is = new std::istringstream (str);
-      geos::geom::Geometry *initial_geom = wkbReader->readHEX(*is);
-      delete is;
+ std::string str = the_geomHex;
+ std::istream *is = new std::istringstream (str);
+ geos::geom::Geometry *initial_geom = wkbReader->readHEX(*is);
+ delete is;
 
 
-      LinkedList<Feat*> *finalFeats = splitGeom (initial_geom, geom_id);
+ LinkedList<Feat*> *finalFeats = splitGeom (initial_geom, geom_id);
 
-      nPart = finalFeats->size();
+ nPart = finalFeats->size();
 
-      bool pushback = nPart > oldnPart;
+ bool pushback = nPart > oldnPart;
 
-      Feature *feat;
-      Feat *ft;
+ Feature *feat;
+ Feat *ft;
 
-      if (!pushback){
-         int k = 0
-         while (finalFeats->size() > 0){
-            feat = it->item;
+ if (!pushback){
+ int k = 0
+ while (finalFeats->size() > 0){
+ feat = it->item;
 
-            ft = finalFeats->pop_front();
+ ft = finalFeats->pop_front();
 
-            bmin[0] = feat->xmin;
-            bmin[1] = feat->ymin;
+ bmin[0] = feat->xmin;
+ bmin[1] = feat->ymin;
 
-            bmax[0] = feat->xmax;
-            bmax[1] = feat->ymax;
+ bmax[0] = feat->xmax;
+ bmax[1] = feat->ymax;
 
-            rtree->Remove (bmin, bmax, feat);
+ rtree->Remove (bmin, bmax, feat);
 
-            feat->setXYCoord (ft->geom);
-            feat->nPart = nPart;
+ feat->setXYCoord (ft->geom);
+ feat->nPart = nPart;
 
-            bmin[0] = feat->xmin;
-            bmin[1] = feat->ymin;
+ bmin[0] = feat->xmin;
+ bmin[1] = feat->ymin;
 
-            bmax[0] = feat->xmax;
-            bmax[1] = feat->ymax;
+ bmax[0] = feat->xmax;
+ bmax[1] = feat->ymax;
 
-            rtree->Insert (bmin, bmax, feat);
+ rtree->Insert (bmin, bmax, feat);
 
-            it = it->next;
-            k++;
-         }
+ it = it->next;
+ k++;
+ }
 
-         for (;k<oldnPart;it++){
+ for (;k<oldnPart;it++){
 
-         }
-      }
-      else{
-        // 1) Backup old value (xPx, etc)
-        // 2) remove old Features from old_id
-        // 3) append new feauter through addFeature method
-      }
-   }
-}
-*/
-
+ }
+ }
+ else{
+ // 1) Backup old value (xPx, etc)
+ // 2) remove old Features from old_id
+ // 3) append new feauter through addFeature method
+ }
+ }
+ }
+ */
 
 } // end namespace
 

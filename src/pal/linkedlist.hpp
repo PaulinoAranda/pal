@@ -136,7 +136,8 @@ namespace pal {
         while (cur) {
             it = cur;
             cur = cur->next;
-            delete it;
+            if(it)
+            	delete it;
         }
     }
 
@@ -148,6 +149,8 @@ namespace pal {
             last->next = new Cell<Type> (item);
             last = last->next;
         }
+        last->next=NULL;
+
         s++;
     }
 
@@ -156,6 +159,7 @@ namespace pal {
         n->next = first;
         first = n;
         s++;
+
     }
 
 
@@ -171,6 +175,7 @@ namespace pal {
             s--;
         } else
             item = Type (0);
+
 
         return item;
     }
@@ -205,22 +210,31 @@ namespace pal {
             if (compare (item, p->item)) {
                 first = p->next;
                 s--;
-//                PAu
-//                delete p;
+                if(p)
+                	delete p;
+                p=NULL;
+
                 return;
             }
             while (p->next && !compare (p->next->item, item)) {
-                p = p->next;
+            	p = p->next;
             }
 
             if (p->next) {
+
                 q = p->next;
                 p->next = q->next;
+
                 s--;
-//                PAu
-//                delete q;
-                if (!p->next)
+                if(q)
+                	delete q;
+
+                q=NULL;
+                if (!p->next){
                     last = p;
+
+                }
+
             }
         }
     }

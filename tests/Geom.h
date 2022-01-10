@@ -37,6 +37,7 @@ class Geom : public pal::PalGeometry {
 private:
     GEOSGeometry *the_geom;
     int nb;
+    std::string geom_id;
 
 public:
 
@@ -45,6 +46,14 @@ public:
 
     Geom (const char *wkb);
     virtual ~Geom();
+
+    std::string getGeomId() const {
+		return geom_id;
+	}
+
+	void setGeomId(std::string geomId) {
+		geom_id = geomId;
+	}
 };
 
 #endif

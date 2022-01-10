@@ -25,28 +25,26 @@
 
 
 
-#ifndef _palgeometrywrapper_h
-#define _palgeometrywrapper_h
+#ifndef _GEOM_H
+#define _GEOM_H
 
-#include <jni.h>
 #include <geos_c.h>
+
 #include <pal/palgeometry.h>
 
-class PalGeometryWrapper : public pal::PalGeometry {
-    private:
-        jobject jpalGeom;
-        int nbAccess;
-        JNIEnv *env;
-        GEOSGeometry *the_geom;
+class Geom : public pal::PalGeometry {
 
-    public:
+private:
+    GEOSGeometry *the_geom;
+    int nb;
 
-        PalGeometryWrapper (JNIEnv *env, jobject jpalGeom);
+public:
 
-        virtual GEOSGeometry *getGeosGeometry ();
-        virtual void releaseGeosGeometry (GEOSGeometry *the_geom);
+    GEOSGeometry* getGeosGeometry();
+    void releaseGeosGeometry (GEOSGeometry *the_geom);
 
-        virtual ~PalGeometryWrapper();
+    Geom (const char *wkb);
+    virtual ~Geom();
 };
 
 #endif
