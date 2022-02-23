@@ -164,7 +164,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 			scale, delta_width);
 
 	int nbp = layer->pal->point_p;
-	int distanceNbp = 3;
+	int distanceNbp = 4;
 //std::cout << "Nbp : " << nbp << std::endl;
 
 	int i, ii;
