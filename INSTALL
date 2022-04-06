@@ -1,20 +1,14 @@
 Compatibility notes
 ===================
-
 Pal requires:
    >=geos-3.0.0
+     catch2
+     cmake
 
 Quickstart
 ==========
 
-as root:
-   ./configure
+
+   cmake .
    make 
-   make install
-
-
-Configure options
-================
-   --enable-test : build a test program and install some scripts that allow to label maps defined in flat text file
-
-   --enable-svgmap : each time the lib create a map (e.g the Pal::labeller method), a svg file called pal-map.svg is created in current directory
+   sudo make install
