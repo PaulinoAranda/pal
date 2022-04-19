@@ -47,24 +47,33 @@
 #define M_PI 3.1415926535897931159979634685
 #endif
 
+namespace pal
+{
 
-namespace pal {
-
-    LabelPosition::LabelPosition (int id, double x1, double y1, double w, double h, double alpha,  double alphaPAu, double cost, Feature *feature) : id (id), cost (cost), /*workingCost (0),*/ alpha (alpha), alphaPAu (alphaPAu),feature (feature), nbOverlap (0), w (w), h (h) {
-
+    LabelPosition::LabelPosition ( long int id,
+                                   long double x1,
+                                   long double y1,
+                                   long double w,
+                                   long double h,
+                                   long double alpha,
+                                   long double alphaPAu,
+                                   long double cost,
+                                   Feature *feature) :
+            id (id), cost (cost), /*workingCost (0),*/alpha (alpha), alphaPAu (alphaPAu), feature (feature), nbOverlap (0), w (w), h (h)
+    {
 
         // alpha take his value bw 0 and 2*pi rad
-        while (this->alpha > 2*M_PI)
+        while (this->alpha > 2 * M_PI)
             this->alpha -= 2 * M_PI;
 
         while (this->alpha < 0)
             this->alpha += 2 * M_PI;
 
-        register double beta = this->alpha + (M_PI / 2);
+        register long double beta = this->alpha + (M_PI / 2);
 
-        double dx1, dx2, dy1, dy2;
+        long double dx1, dx2, dy1, dy2;
 
-        double tx, ty;
+        long double tx, ty;
 
         dx1 = cos (this->alpha) * w;
         dy1 = sin (this->alpha) * w;
@@ -85,7 +94,8 @@ namespace pal {
         y[3] = y1 + dy2;
 
         // upside down ?
-        if (this->alpha > M_PI / 2 && this->alpha <= 3*M_PI / 2) {
+        if (this->alpha > M_PI / 2 && this->alpha <= 3 * M_PI / 2)
+        {
             tx = x[0];
             ty = y[0];
 
@@ -111,12 +121,14 @@ namespace pal {
         }
     }
 
-    bool LabelPosition::isIn (double *bbox) {
-        int i;
+    bool
+    LabelPosition::isIn ( long double *bbox)
+    {
+        long int i;
 
-        for (i = 0;i < 4;i++) {
-            if (x[i] >= bbox[0] && x[i] <= bbox[2] &&
-                    y[i] >= bbox[1] && y[i] <= bbox[3])
+        for ( i = 0; i < 4; i++)
+        {
+            if (x[i] >= bbox[0] && x[i] <= bbox[2] && y[i] >= bbox[1] && y[i] <= bbox[3])
                 return true;
         }
 
@@ -124,8 +136,10 @@ namespace pal {
 
     }
 
-    void LabelPosition::print() {
-        std::cout << feature->getLayer()->getName() << "/" << feature->getUID() << "/" << id;
+    void
+    LabelPosition::print ()
+    {
+        std::cout << feature->getLayer ()->getName () << "/" << feature->getUID () << "/" << id;
         std::cout << " cost: " << cost;
         std::cout << " alpha" << alpha << std::endl;
         std::cout << x[0] << ", " << y[0] << std::endl;
@@ -135,105 +149,138 @@ namespace pal {
         std::cout << std::endl;
     }
 
-    bool LabelPosition::isInConflict (LabelPosition *ls) {
-        int i, i2, j;
-        int d1, d2;
+    bool
+    LabelPosition::isInConflict ( LabelPosition *ls)
+    {
+        long int i, i2, j;
+        long int d1, d2;
 
-        if (this->probFeat == ls->probFeat) // bugfix #1
-            return false; // always overlaping itself !
+        if (this->probFeat == ls->probFeat)     // bugfix #1
+            return false;     // always overlaping itself !
 
-        double cp1, cp2;
-
+        long double cp1, cp2;
 
         //std::cout << "Check intersect" << std::endl;
-        for (i = 0;i < 4;i++) {
+        for ( i = 0; i < 4; i++)
+        {
             i2 = (i + 1) % 4;
             d1 = -1;
             d2 = -1;
             //std::cout << "new seg..." << std::endl;
-            for (j = 0;j < 4;j++) {
+            for ( j = 0; j < 4; j++)
+            {
                 cp1 = cross_product (x[i], y[i], x[i2], y[i2], ls->x[j], ls->y[j]);
-                if (cp1 > 0) {
+                if (cp1 > 0)
+                {
                     d1 = 1;
                     //std::cout << "    cp1: " << cp1 << std::endl;
                 }
-                cp2 = cross_product (ls->x[i], ls->y[i],
-                                     ls->x[i2], ls->y[i2],
-                                     x[j], y[j]);
+                cp2 = cross_product (ls->x[i], ls->y[i], ls->x[i2], ls->y[i2], x[j], y[j]);
 
-                if (cp2 > 0) {
+                if (cp2 > 0)
+                {
                     d2 = 1;
                     //std::cout << "     cp2 " << cp2 << std::endl;
                 }
             }
 
-            if (d1 == -1 || d2 == -1) // disjoint
+            if (d1 == -1 || d2 == -1)     // disjoint
                 return false;
         }
         return true;
     }
 
-    int LabelPosition::getId() {
+     long int
+    LabelPosition::getId ()
+    {
         return id;
     }
 
-    double LabelPosition::getX() {
+     long double
+    LabelPosition::getX ()
+    {
         return x[0];
     }
 
-    double LabelPosition::getY() {
+     long double
+    LabelPosition::getY ()
+    {
         return y[0];
     }
 
-    double LabelPosition::getAlpha() {
+     long double
+    LabelPosition::getAlpha ()
+    {
         return alpha;
     }
 
-
-
-    double LabelPosition::getCost() {
+     long double
+    LabelPosition::getCost ()
+    {
         return cost;
     }
 
-    Feature * LabelPosition::getFeature() {
+    Feature*
+    LabelPosition::getFeature ()
+    {
         return feature;
     }
 
-    bool xGrow (void *l, void *r) {
-        return ( (LabelPosition*) l)->x[0] > ( (LabelPosition*) r)->x[0];
+    bool
+    xGrow ( void *l,
+            void *r)
+    {
+        return (( LabelPosition*) l)->x[0] > (( LabelPosition*) r)->x[0];
     }
 
-    bool yGrow (void *l, void *r) {
-        return ( (LabelPosition*) l)->y[0] > ( (LabelPosition*) r)->y[0];
+    bool
+    yGrow ( void *l,
+            void *r)
+    {
+        return (( LabelPosition*) l)->y[0] > (( LabelPosition*) r)->y[0];
     }
 
-    bool xShrink (void *l, void *r) {
-        return ( (LabelPosition*) l)->x[0] < ( (LabelPosition*) r)->x[0];
+    bool
+    xShrink ( void *l,
+              void *r)
+    {
+        return (( LabelPosition*) l)->x[0] < (( LabelPosition*) r)->x[0];
     }
 
-    bool yShrink (void *l, void *r) {
-        return ( (LabelPosition*) l)->y[0] < ( (LabelPosition*) r)->y[0];
+    bool
+    yShrink ( void *l,
+              void *r)
+    {
+        return (( LabelPosition*) l)->y[0] < (( LabelPosition*) r)->y[0];
     }
 
-    bool costShrink (void *l, void *r) {
-        return ( (LabelPosition*) l)->cost < ( (LabelPosition*) r)->cost;
+    bool
+    costShrink ( void *l,
+                 void *r)
+    {
+        return (( LabelPosition*) l)->cost < (( LabelPosition*) r)->cost;
     }
 
-    bool costGrow (void *l, void *r) {
-        return ( (LabelPosition*) l)->cost > ( (LabelPosition*) r)->cost;
+    bool
+    costGrow ( void *l,
+               void *r)
+    {
+        return (( LabelPosition*) l)->cost > (( LabelPosition*) r)->cost;
     }
 
     /*
-    bool workingCostShrink (void *l, void *r){
-       return ((LabelPosition*)l)->workingCost < ((LabelPosition*)r)->workingCost;
-    }
+     bool workingCostShrink (void *l, void *r){
+     return ((LabelPosition*)l)->workingCost < ((LabelPosition*)r)->workingCost;
+     }
 
-    bool workingCostGrow (void *l, void *r){
-       return ((LabelPosition*)l)->workingCost > ((LabelPosition*)r)->workingCost;
-    }
-    */
+     bool workingCostGrow (void *l, void *r){
+     return ((LabelPosition*)l)->workingCost > ((LabelPosition*)r)->workingCost;
+     }
+     */
 
-    Label *LabelPosition::toLabel (bool active) {
+    Label*
+    LabelPosition::toLabel ( bool active)
+    {
 
         //double x[4], y;
 
@@ -243,89 +290,98 @@ namespace pal {
 //#warning retourner les coord projeté ou pas ?
         //feature->layer->pal->proj->getLatLong(this->x[0], this->y[0], &x, &y);
 
-        return new Label (this->x, this->y, alpha, feature->uid, feature->layer->name, feature->userGeom , this->alphaPAu);
+        return new Label (this->x, this->y, alpha, feature->uid, feature->layer->name, feature->userGeom, this->alphaPAu);
     }
 
+    bool
+    obstacleCallback ( PointSet *feat,
+                       void *ctx)
+    {
+        LabelPosition::PolygonCostCalculator *pCost = ( LabelPosition::PolygonCostCalculator*) ctx;
 
-    bool obstacleCallback (PointSet *feat, void *ctx) {
-        LabelPosition::PolygonCostCalculator *pCost = (LabelPosition::PolygonCostCalculator*) ctx;
-
-        LabelPosition *lp = pCost->getLabel();
-        if ( (feat == lp->feature) || (feat->holeOf && feat->holeOf != lp->feature)) {
+        LabelPosition *lp = pCost->getLabel ();
+        if ((feat == lp->feature) || (feat->holeOf && feat->holeOf != lp->feature))
+        {
             return true;
         }
 
         // if the feature is not a hole we have to fetch corrdinates
         // otherwise holes coordinates are still in memory (feature->selfObs)
-        if (feat->holeOf == NULL) {
-            ( (Feature*) feat)->fetchCoordinates();
+        if (feat->holeOf == NULL)
+        {
+            (( Feature*) feat)->fetchCoordinates ();
         }
 
-        pCost->update(feat);
+        pCost->update (feat);
 
-
-        if (feat->holeOf == NULL) {
-            ( (Feature*) feat)->releaseCoordinates();
+        if (feat->holeOf == NULL)
+        {
+            (( Feature*) feat)->releaseCoordinates ();
         }
-
 
         return true;
     }
 
-    void LabelPosition::setCostFromPolygon (RTree <PointSet*, double, 2, double> *obstacles, double bbx[4], double bby[4]){
+    void
+    LabelPosition::setCostFromPolygon ( RTree< PointSet*, long  double, 2, long  double> *obstacles,
+                                        long double bbx[4],
+                                        long double bby[4])
+    {
 
-        double amin[2];
-        double amax[2];
+        long double amin[2];
+        long double amax[2];
 
-
-        LabelPosition::PolygonCostCalculator *pCost = new LabelPosition::PolygonCostCalculator(this);
+        LabelPosition::PolygonCostCalculator *pCost = new LabelPosition::PolygonCostCalculator (this);
         //cost = getCostFromPolygon (feat, dist_sq);
 
         // center
         //cost = feat->getDistInside((this->x[0] + this->x[2])/2.0, (this->y[0] + this->y[2])/2.0 );
 
-        feature->fetchCoordinates();
-        pCost->update(feature);
+        feature->fetchCoordinates ();
+        pCost->update (feature);
 
-        PointSet *extent = new PointSet(4, bbx, bby);
+        PointSet *extent = new PointSet (4, bbx, bby);
 
-        pCost->update(extent);
+        pCost->update (extent);
 
         delete extent;
 
         // TODO Comment
         /*if (cost > (w*w + h*h) / 4.0) {
-            double dist = sqrt (cost);
-            amin[0] = (x[0] + x[2]) / 2.0 - dist;
-            amin[1] = (y[0] + y[2]) / 2.0 - dist;
-            amax[0] = amin[0] + 2 * dist;
-            amax[1] = amin[1] + 2 * dist;
-        } else {*/
-            amin[0] = feature->getXmin();
-            amin[1] = feature->getYmin();
-            amax[0] = feature->getXmax();
-            amax[1] = feature->getYmax();
+         long double dist = sqrt (cost);
+         amin[0] = (x[0] + x[2]) / 2.0 - dist;
+         amin[1] = (y[0] + y[2]) / 2.0 - dist;
+         amax[0] = amin[0] + 2 * dist;
+         amax[1] = amin[1] + 2 * dist;
+         } else {*/
+        amin[0] = feature->getXmin ();
+        amin[1] = feature->getYmin ();
+        amax[0] = feature->getXmax ();
+        amax[1] = feature->getYmax ();
         //}
 
         //std::cout << amin[0] << " " << amin[1] << " " << amax[0] << " " <<  amax[1] << std::endl;
         obstacles->Search (amin, amax, obstacleCallback, pCost);
 
-        cost = pCost->getCost();
+        cost = pCost->getCost ();
 
-        feature->releaseCoordinates();
+        feature->releaseCoordinates ();
         delete pCost;
     }
 
-    void LabelPosition::removeFromIndex (RTree<LabelPosition*, double, 2, double> *index) {
-        double amin[2];
-        double amax[2];
-        int c;
+    void
+    LabelPosition::removeFromIndex ( RTree< LabelPosition*, long  double, 2, long  double> *index)
+    {
+        long double amin[2];
+        long double amax[2];
+        long int c;
 
-        amin[0] = DBL_MAX;
-        amax[0] = -DBL_MAX;
-        amin[1] = DBL_MAX;
-        amax[1] = -DBL_MAX;
-        for (c = 0;c < 4;c++) {
+        amin[0] = LDBL_MAX;
+        amax[0] = -LDBL_MAX;
+        amin[1] = LDBL_MAX;
+        amax[1] = -LDBL_MAX;
+        for ( c = 0; c < 4; c++)
+        {
             if (x[c] < amin[0])
                 amin[0] = x[c];
             if (x[c] > amax[0])
@@ -339,17 +395,19 @@ namespace pal {
         index->Remove (amin, amax, this);
     }
 
+    void
+    LabelPosition::insertIntoIndex ( RTree< LabelPosition*, long  double, 2, long  double> *index)
+    {
+        long double amin[2];
+        long double amax[2];
+        long int c;
 
-    void LabelPosition::insertIntoIndex (RTree<LabelPosition*, double, 2, double> *index) {
-        double amin[2];
-        double amax[2];
-        int c;
-
-        amin[0] = DBL_MAX;
-        amax[0] = -DBL_MAX;
-        amin[1] = DBL_MAX;
-        amax[1] = -DBL_MAX;
-        for (c = 0;c < 4;c++) {
+        amin[0] = LDBL_MAX;
+        amax[0] = -LDBL_MAX;
+        amin[1] = LDBL_MAX;
+        amax[1] = -LDBL_MAX;
+        for ( c = 0; c < 4; c++)
+        {
             if (x[c] < amin[0])
                 amin[0] = x[c];
             if (x[c] > amax[0])
@@ -363,51 +421,61 @@ namespace pal {
         index->Insert (amin, amax, this);
     }
 
-
-    void LabelPosition::setCost (int nblp, LabelPosition **lPos, int max_p, RTree<PointSet*, double, 2, double> *obstacles, double bbx[4], double bby[4]) {
+    void
+    LabelPosition::setCost ( long int nblp,
+                             LabelPosition **lPos,
+                             long int max_p,
+                             RTree< PointSet*, long  double, 2, long  double> *obstacles,
+                             long double bbx[4],
+                             long double bby[4])
+    {
         //std::cout << "setCost:" << std::endl;
         //clock_t clock_start = clock();
 
-        int i;
+        long int i;
 
-        double normalizer;
+        long double normalizer;
         // compute raw cost
 #ifdef _DEBUG_
         std::cout << "LabelPosition for feat: " << lPos[0]->feature->uid << std::endl;
 #endif
 
-        for (i = 0;i < nblp;i++)
+        for ( i = 0; i < nblp; i++)
             lPos[i]->setCostFromPolygon (obstacles, bbx, bby);
 
         // lPos with big values came fisrts (value = min distance from label to Polygon's Perimeter)
         //sort ( (void**) lPos, nblp, costGrow);
-        sort ( (void**) lPos, nblp, costShrink);
-
+        sort (( void**) lPos, nblp, costShrink);
 
         // define the value's range
-        double cost_max = lPos[0]->cost;
-        double cost_min = lPos[max_p-1]->cost;
+        long double cost_max = lPos[0]->cost;
+        long double cost_min = lPos[max_p - 1]->cost;
 
         cost_max -= cost_min;
 
-        if (cost_max > EPSILON){
+        if (cost_max > EPSILON)
+        {
             normalizer = 0.0020 / cost_max;
         }
-        else{
+        else
+        {
             normalizer = 1;
         }
-          
+
         // adjust cost => the best is 0.0001, the sorst is 0.0021
         // others are set proportionally between best and worst
-        for (i = 0;i < max_p;i++) {
+        for ( i = 0; i < max_p; i++)
+        {
 #ifdef _DEBUG_
             std::cout << "   lpos[" << i << "] = " << lPos[i]->cost;
 #endif
             //if (cost_max - cost_min < EPSILON)
-            if (cost_max > EPSILON){
+            if (cost_max > EPSILON)
+            {
                 lPos[i]->cost = 0.0021 - (lPos[i]->cost - cost_min) * normalizer;
             }
-            else{
+            else
+            {
                 //lPos[i]->cost = 0.0001 + (lPos[i]->cost - cost_min) * normalizer;
                 lPos[i]->cost = 0.0001;
             }
@@ -420,9 +488,11 @@ namespace pal {
         //std::cout << "AfterSetCostFromPolygon (" << nblp << "x): " << clock_2 = (clock() - clock_1) << std::endl;
     }
 
-    LabelPosition::PolygonCostCalculator::PolygonCostCalculator (LabelPosition *lp) : lp(lp) {
-        int i;
-        double hyp = max(lp->feature->getXmax() - lp->feature->getXmin(), lp->feature->getYmax() - lp->feature->getYmin());
+    LabelPosition::PolygonCostCalculator::PolygonCostCalculator ( LabelPosition *lp) :
+            lp (lp)
+    {
+        long int i;
+        long double hyp = max (lp->feature->getXmax () - lp->feature->getXmin (), lp->feature->getYmax () - lp->feature->getYmin ());
         hyp *= 10;
 
         px = (lp->x[0] + lp->x[2]) / 2.0;
@@ -432,29 +502,35 @@ namespace pal {
         dLp[2] = dLp[0] / cos (M_PI / 4);
 
         /*
-                   3  2  1
-                    \ | /
-                  4 --x -- 0
-                    / | \
+         3  2  1
+         \ | /
+         4 --x -- 0
+         / | \
                    5  6  7
-        */
+         */
 
-        double alpha = lp->getAlpha();
-        for (i = 0;i < 8;i++, alpha+=M_PI/4) {
-            dist[i] = DBL_MAX;
+        long double alpha = lp->getAlpha ();
+        for ( i = 0; i < 8; i++, alpha += M_PI / 4)
+        {
+            dist[i] = LDBL_MAX;
             ok[i] = false;
-            rpx[i] = px + cos(alpha)*hyp;
-            rpy[i] = py + sin(alpha)*hyp;
+            rpx[i] = px + cos (alpha) * hyp;
+            rpy[i] = py + sin (alpha) * hyp;
         }
     }
 
-    void LabelPosition::PolygonCostCalculator::update (PointSet *pset) {
-        if (pset->getType() == GEOS_POINT){
-            updatePoint(pset);
+    void
+    LabelPosition::PolygonCostCalculator::update ( PointSet *pset)
+    {
+        if (pset->getType () == GEOS_POINT)
+        {
+            updatePoint (pset);
         }
-        else{
-            double rx,ry;
-            if (pset->getDist (px, py, &rx, &ry) < updateLinePoly(pset)){
+        else
+        {
+            long double rx, ry;
+            if (pset->getDist (px, py, &rx, &ry) < updateLinePoly (pset))
+            {
                 PointSet *point = new PointSet (ry, ry);
                 update (point);
                 delete point;
@@ -462,52 +538,66 @@ namespace pal {
         }
     }
 
-    void LabelPosition::PolygonCostCalculator::updatePoint (PointSet *pset) {
-        double beta = atan2(pset->getY()[0] - py, pset->getX()[0] - px) - lp->getAlpha();
+    void
+    LabelPosition::PolygonCostCalculator::updatePoint ( PointSet *pset)
+    {
+        long double beta = atan2 (pset->getY ()[0] - py, pset->getX ()[0] - px) - lp->getAlpha ();
 
-        while (beta < 0){
-           beta += 2*M_PI;
+        while (beta < 0)
+        {
+            beta += 2 * M_PI;
         }
 
-        double a45 = M_PI/4;
+        long double a45 = M_PI / 4;
 
-        int i =(int)(beta/a45);
+        long int i = ( int) (beta / a45);
 
-        for (int j=0;j<2;j++, i=(i+1)%8){
-            double rx, ry;
+        for ( long int j = 0; j < 2; j++, i = (i + 1) % 8)
+        {
+            long double rx, ry;
             rx = px - rpy[i] + py;
             ry = py + rpx[i] - px;
-            double ix, iy; // the point that we look for
-            if (computeLineIntersection(px, py, rpx[i], rpy[i], pset->getX()[0], pset->getY()[0], rx, ry, &ix, &iy)){
-                double d = dist_euc2d_sq(px, py, ix, iy);
-                if (d < dist[i]){
-                   dist[i] = d;
-                   ok[i] = true;
+            long double ix, iy;     // the point that we look for
+            if (computeLineIntersection (px, py, rpx[i], rpy[i], pset->getX ()[0], pset->getY ()[0], rx, ry, &ix, &iy))
+            {
+                long double d = dist_euc2d_sq (px, py, ix, iy);
+                if (d < dist[i])
+                {
+                    dist[i] = d;
+                    ok[i] = true;
                 }
             }
-            else{
-               std::cout << "this shouldn't occurs !!!" << std::endl;
+            else
+            {
+                std::cout << "this shouldn't occurs !!!" << std::endl;
             }
         }
     }
 
-    double LabelPosition::PolygonCostCalculator::updateLinePoly (PointSet *pset) {
-        int i, j, k;
-        int nbP = (pset->getType() == GEOS_POLYGON ? pset->getNbPoints() : pset->getNbPoints()-1);
-        double min_dist = DBL_MAX;
+     long double
+    LabelPosition::PolygonCostCalculator::updateLinePoly ( PointSet *pset)
+    {
+        long int i, j, k;
+        long int nbP = (pset->getType () == GEOS_POLYGON ? pset->getNbPoints () : pset->getNbPoints () - 1);
+        long double min_dist = LDBL_MAX;
 
-        for (i = 0;i < nbP;i++) {
-            j = (i + 1) % pset->getNbPoints();
+        for ( i = 0; i < nbP; i++)
+        {
+            j = (i + 1) % pset->getNbPoints ();
 
-            for (k = 0;k < 8;k++) {
-                double ix, iy;
-                if (computeSegIntersection (px, py, rpx[k], rpy[k], pset->getX()[i], pset->getY()[i], pset->getX()[j], pset->getY()[j], &ix, &iy)) {
-                    double d = dist_euc2d_sq (px, py, ix, iy);
-                    if (d < dist[k]) {
+            for ( k = 0; k < 8; k++)
+            {
+                long double ix, iy;
+                if (computeSegIntersection (px, py, rpx[k], rpy[k], pset->getX ()[i], pset->getY ()[i], pset->getX ()[j], pset->getY ()[j], &ix, &iy))
+                {
+                    long double d = dist_euc2d_sq (px, py, ix, iy);
+                    if (d < dist[k])
+                    {
                         dist[k] = d;
                         ok[k] = true;
                     }
-                    if (d < min_dist){
+                    if (d < min_dist)
+                    {
                         min_dist = d;
                     }
                 }
@@ -516,29 +606,35 @@ namespace pal {
         return min_dist;
     }
 
-    LabelPosition* LabelPosition::PolygonCostCalculator::getLabel () {
+    LabelPosition*
+    LabelPosition::PolygonCostCalculator::getLabel ()
+    {
         return lp;
     }
 
-    double LabelPosition::PolygonCostCalculator::getCost () {
-        int i;
+     long double
+    LabelPosition::PolygonCostCalculator::getCost ()
+    {
+        long int i;
 
-        for (i = 0;i < 8;i++) {
-            dist[i] -= ((i%2) ? dLp[2] : ((i==0||i==4)? dLp[0]: dLp[1]));
-            if (!ok[i] || dist[i] < 0.1){
+        for ( i = 0; i < 8; i++)
+        {
+            dist[i] -= ((i % 2) ? dLp[2] : ((i == 0 || i == 4) ? dLp[0] : dLp[1]));
+            if (!ok[i] || dist[i] < 0.1)
+            {
                 dist[i] = 0.1;
             }
         }
 
-        double a,b,c,d;
+        long double a, b, c, d;
 
-        a = min(dist[0], dist[4]);
-        b = min(dist[1], dist[5]);
-        c = min(dist[2], dist[6]);
-        d = min(dist[3], dist[7]);
+        a = min (dist[0], dist[4]);
+        b = min (dist[1], dist[5]);
+        c = min (dist[2], dist[6]);
+        d = min (dist[3], dist[7]);
 
         //return (a+b+c+d);
-        return (a*b*c*d);
+        return (a * b * c * d);
     }
-} // end namespace
+}     // end namespace
 

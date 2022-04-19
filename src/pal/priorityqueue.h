@@ -36,53 +36,72 @@
 #define RIGHT(x) (2*x+2)
 #define PARENT(x) ((x-1)/2)
 
+namespace pal
+{
 
-namespace pal {
+    class PriorityQueue
+    {
+        private:
+            long int size;
+            long int maxsize;
+            long int maxId;
+            long int *heap;
+            long double *p;
+            long int *pos;
 
-    class PriorityQueue {
-    private:
-        int size;
-        int maxsize;
-        int maxId;
-        int *heap;
-        double *p;
-        int *pos;
+            bool
+            (*greater) ( long double l,
+                         long double r);
 
-        bool (*greater) (double l, double r);
+        public:
+            /** \brief Create a priority queue of max size n
+             * \@param n max size of the queuet
+             * \@param p external vector representing the priority
+             * \@param min best element has the smalest p when min is True ans has the biggest when min is false
+             */
+            PriorityQueue ( long int n,
+                            long int maxId,
+                            bool min);
+            ~PriorityQueue ();
 
-    public:
-        /** \brief Create a priority queue of max size n
-         * \@param n max size of the queuet
-         * \@param p external vector representing the priority
-         * \@param min best element has the smalest p when min is True ans has the biggest when min is false
-         */
-        PriorityQueue (int n, int maxId, bool min);
-        ~PriorityQueue();
+            void
+            print ();
 
-        void print();
+            long int
+            getSize ();
+            long int
+            getSizeByPos ();
 
-        int getSize();
-        int getSizeByPos();
+            bool
+            isIn ( long int key);
 
-        bool isIn (int key);
+            long int
+            getBest ();     // O(log n)
 
-        int getBest(); // O(log n)
+            void
+            remove ( long int key);
+            void
+            insert ( long int key,
+                     long double p);
 
-        void remove (int key);
-        void insert (int key, double p);
+            void
+            sort ();     // O(n log n)
 
-        void sort(); // O(n log n)
+            void
+            downheap ( long int id);
+            void
+            upheap ( long int key);
 
-        void downheap (int id);
-        void upheap (int key);
+            void
+            decreaseKey ( long int key);
+            void
+            setPriority ( long int key,
+                          long double new_p);
 
-        void decreaseKey (int key);
-        void setPriority (int key, double new_p);
-
-
-        int getId (int key);
+            long int
+            getId ( long int key);
     };
 
-} // namespace
+}     // namespace
 
 #endif

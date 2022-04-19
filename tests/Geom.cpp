@@ -23,7 +23,6 @@
  *
  */
 
-
 #include <pal/palgeometry.h>
 #include <pal/label.h>
 
@@ -35,47 +34,49 @@
 
 #include "Geom.h"
 
-Geom::Geom (const char *wkt) {
+Geom::Geom ( const char *wkt)
+{
     nb = 0;
-    int i;
+    long int i;
 
-    GEOSWKTReader *reader = GEOSWKTReader_create();
+    GEOSWKTReader *reader = GEOSWKTReader_create ();
 
     the_geom = GEOSWKTReader_read (reader, wkt);
     GEOSWKTReader_destroy (reader);
 }
 
 /**
-* \brief get the geometry in WKB hexa format
-* This method is called by Pal each time it needs a geom's coordinates
-* \return WKB Hex buffer
-*/
-GEOSGeometry* Geom::getGeosGeometry() {
+ * \brief get the geometry in WKB hexa format
+ * This method is called by Pal each time it needs a geom's coordinates
+ * \return WKB Hex buffer
+ */
+GEOSGeometry*
+Geom::getGeosGeometry ()
+{
     nb++;
     return the_geom;
 }
 
-
 /**
-* \brief Called by Pal when it doesn't need the coordinates anymore
-*/
-void Geom::releaseGeosGeometry (GEOSGeometry *the_geom) {
+ * \brief Called by Pal when it doesn't need the coordinates anymore
+ */
+void
+Geom::releaseGeosGeometry ( GEOSGeometry *the_geom)
+{
     nb--;
     return;
 }
 
-
-
 /**
-* \brief Give back label to display
-* Pal will call this method when labels of the feature are fixed
-void Geom::addLabel(pal::Label *label){
-   std::cout << "One new label" << std::endl;
-}
-*/
+ * \brief Give back label to display
+ * Pal will call this method when labels of the feature are fixed
+ void Geom::addLabel(pal::Label *label){
+ std::cout << "One new label" << std::endl;
+ }
+ */
 
-
-Geom::~Geom() {
+Geom::~Geom ()
+{
     if (nb)
         std::cout << "nb should be 0, not " << nb << std::endl;
 

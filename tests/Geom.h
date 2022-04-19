@@ -23,8 +23,6 @@
  *
  */
 
-
-
 #ifndef _GEOM_H
 #define _GEOM_H
 
@@ -32,28 +30,36 @@
 
 #include <pal/palgeometry.h>
 
-class Geom : public pal::PalGeometry {
+class Geom : public pal::PalGeometry
+{
 
-private:
-    GEOSGeometry *the_geom;
-    int nb;
-    std::string geom_id;
+    private:
+        GEOSGeometry *the_geom;
+        long int nb;
+        std::string geom_id;
 
-public:
+    public:
 
-    GEOSGeometry* getGeosGeometry();
-    void releaseGeosGeometry (GEOSGeometry *the_geom);
+        GEOSGeometry*
+        getGeosGeometry ();
+        void
+        releaseGeosGeometry ( GEOSGeometry *the_geom);
 
-    Geom (const char *wkb);
-    virtual ~Geom();
+        Geom ( const char *wkb);
+        virtual
+        ~Geom ();
 
-    std::string getGeomId() const {
-		return geom_id;
-	}
+        std::string
+        getGeomId () const
+        {
+            return geom_id;
+        }
 
-	void setGeomId(std::string geomId) {
-		geom_id = geomId;
-	}
+        void
+        setGeomId ( std::string geomId)
+        {
+            geom_id = geomId;
+        }
 };
 
 #endif
