@@ -32,8 +32,7 @@
 
 using std::size_t;
 
-namespace pal
-{
+namespace pal {
 
     class LabelPosition;
     class PalGeometry;
@@ -41,108 +40,93 @@ namespace pal
     /**
      * \brief Represent a label to be displayed
      */
-    class Label
-    {
+    class Label {
 
-            friend class LabelPosition;
-        private:
-            long double x[4];
-            long double y[4];
+        friend class LabelPosition;
+    private:
+        double x[4];
+        double y[4];
 
-            long double a;
-            long double alphaPAu;
+        double a;
+        double alphaPAu;
 
-            char *featureId;
-            char *lyrName;
+        char *featureId;
+        char *lyrName;
 
-            PalGeometry *userGeom;
+        PalGeometry *userGeom;
 
-            /**
-             * \brief Create a new label
-             *
-             * @param x x coordinate of down-left label corner
-             * @param y y coordinate of down-left label corner
-             * @param alpha rotation to aplay to the text
-             * @param ftid id of the corresponding feature
-             * @param lyrName name of the corresponding layer
-             * @param userGeom PalGeometry of the feature
-             */
-            Label ( long double x[4],
-                    long double y[4],
-                    long double alpha,
-                    const char *ftid,
-                    const char *lyrName,
-                    PalGeometry *userGeom,
-                    long double alphaPAu);
+        /**
+         * \brief Create a new label
+         *
+         * @param x x coordinate of down-left label corner
+         * @param y y coordinate of down-left label corner
+         * @param alpha rotation to aplay to the text
+         * @param ftid id of the corresponding feature
+         * @param lyrName name of the corresponding layer
+         * @param userGeom PalGeometry of the feature
+         */
+        Label (double x[4], double y[4], double alpha, const char *ftid, const char *lyrName, PalGeometry *userGeom, double alphaPAu);
 
-        public:
-            /**
-             * \brief delete a label
-             */
-            ~Label ();
+    public:
+        /**
+         * \brief delete a label
+         */
+        ~Label();
 
-            /**
-             * \brief return the down-left x coordinate
-             * @return x coordinate
-             */
-            long double
-            getOrigX ();
 
-            /**
-             * \brief return the down-left y coordinate
-             * @return y coordinate
-             */
-            long double
-            getOrigY ();
+        /**
+         * \brief return the down-left x coordinate
+         * @return x coordinate
+         */
+        double getOrigX();
 
-            /**
-             * \brief get a specific x coordinate
-             * @param i 0 => down-left, 1=>down-right, 2=>up-right 3=> up-left
-             * @return the i'th x coordinate
-             */
-            long double
-            getX ( size_t i);
+        /**
+         * \brief return the down-left y coordinate
+         * @return y coordinate
+         */
+        double getOrigY();
 
-            /**
-             * \brief get a specific y coordinate
-             * @param i 0 => down-left, 1=>down-right, 2=>up-right 3=> up-left
-             * @return the i'th y coordinate
-             */
-            long double
-            getY ( size_t i);
+        /**
+         * \brief get a specific x coordinate
+         * @param i 0 => down-left, 1=>down-right, 2=>up-right 3=> up-left
+         * @return the i'th x coordinate
+         */
+        double getX (size_t i);
 
-            /**
-             * \brief return the label orientation
-             * @return alpha in rad, couterclockwise
-             */
-            long double
-            getRotation ();
+        /**
+         * \brief get a specific y coordinate
+         * @param i 0 => down-left, 1=>down-right, 2=>up-right 3=> up-left
+         * @return the i'th y coordinate
+         */
+        double getY (size_t i);
 
-            long double
-            getAlphaPAu ();
+        /**
+         * \brief return the label orientation
+         * @return alpha in rad, couterclockwise
+         */
+        double getRotation();
 
-            /**
-             * \brief return the name of the layer wich contains the feature
-             * @return the layer's name
-             */
-            const char*
-            getLayerName ();
+        double getAlphaPAu();
 
-            /**
-             * \brief return the feature's unique id
-             * @return the feature's id
-             */
-            const char*
-            getFeatureId ();
+        /**
+         * \brief return the name of the layer wich contains the feature
+         * @return the layer's name
+         */
+        const char *getLayerName();
 
-            /**
-             * \brief return user geometry (pal::Layer::registerFeature())
-             * @return pointer to the user geometry
-             */
-            PalGeometry*
-            getGeometry ();
+        /**
+         * \brief return the feature's unique id
+         * @return the feature's id
+         */
+        const char *getFeatureId();
+
+        /**
+         * \brief return user geometry (pal::Layer::registerFeature())
+         * @return pointer to the user geometry
+         */
+        PalGeometry * getGeometry();
     };
 
-}     // end namespace pal
+} // end namespace pal
 
 #endif

@@ -55,52 +55,41 @@
 #include "util.h"
 #include "priorityqueue.h"
 
+
 #undef _VERBOSE_
 #undef _DEBUG_FULL_
 #undef _DEBUG_
-#undef _INFO_
 
+namespace pal {
 
-//#define _VERBOSE_
-//#define _DEBUG_FULL_
-//#define _DEBUG_
-namespace pal
-{
-
-    inline void
-    delete_chain ( Chain *chain)
-    {
-        if (chain)
-        {
+    inline void delete_chain (Chain *chain) {
+        if (chain) {
             delete[] chain->feat;
             delete[] chain->label;
             delete chain;
         }
     }
 
-    Problem::Problem () :
-                    nblp (0), all_nblp (0), nbft (0), displayAll (0), labelpositions (NULL), featStartId (NULL), featNbLp (NULL), inactiveCost (NULL), sol (NULL)
-    {
+    Problem::Problem() : nblp (0), all_nblp (0), nbft (0), displayAll (0), labelpositions (NULL), featStartId (NULL), featNbLp (NULL), inactiveCost (NULL), sol (NULL) {
         bbox[0] = 0;
         bbox[1] = 0;
         bbox[2] = 0;
         bbox[3] = 0;
         featWrap = NULL;
-        candidates = new RTree< LabelPosition*, long  double, 2, long  double> ();
-        candidates_sol = new RTree< LabelPosition*, long  double, 2, long  double> ();
+        candidates = new RTree<LabelPosition*, double, 2, double>();
+        candidates_sol = new RTree<LabelPosition*, double, 2, double>();
         candidates_subsol = NULL;
     }
 
-    Problem::~Problem ()
-    {
-        long int i;
+    Problem::~Problem() {
+        int i;
 
-        if (sol)
-        {
+        if (sol) {
             if (sol->s)
                 delete[] sol->s;
             delete sol;
         }
+
 
         if (featWrap)
             delete[] featWrap;
@@ -109,12 +98,12 @@ namespace pal
         if (featNbLp)
             delete[] featNbLp;
 
-        for ( i = 0; i < nbLabelledLayers; i++)
+        for (i = 0;i < nbLabelledLayers;i++)
             delete[] labelledLayersName[i];
 
         delete[] labelledLayersName;
 
-        for ( i = 0; i < all_nblp; i++)
+        for (i = 0;i < all_nblp;i++)
             delete labelpositions[i];
 
         if (labelpositions)
@@ -126,61 +115,44 @@ namespace pal
         delete candidates;
         delete candidates_sol;
 
-        if (candidates_subsol)
-        {
+        if (candidates_subsol) {
             delete candidates_subsol;
         }
     }
 
-    typedef struct
-    {
-            long int id;
-            long double inactiveCost;
-            long double nbOverlap;
+    typedef struct {
+        int id;
+        double inactiveCost;
+        double nbOverlap;
     } Ft;
 
-    inline bool
-    borderSizeDec ( void *l,
-                    void *r)
-    {
-        return (( SubPart*) l)->borderSize < (( SubPart*) r)->borderSize;
+
+    inline bool borderSizeDec (void *l, void *r) {
+        return ( (SubPart*) l)->borderSize < ( (SubPart*) r)->borderSize;
     }
 
-    inline bool
-    borderSizeInc ( void *l,
-                    void *r)
-    {
-        return (( SubPart*) l)->borderSize > (( SubPart*) r)->borderSize;
+    inline bool borderSizeInc (void *l, void *r) {
+        return ( (SubPart*) l)->borderSize > ( (SubPart*) r)->borderSize;
     }
 
-    inline bool
-    increaseImportance ( void *l,
-                         void *r)
-    {
-        return (( Ft*) l)->inactiveCost < (( Ft*) r)->inactiveCost;
+    inline bool increaseImportance (void *l, void *r) {
+        return ( (Ft*) l)->inactiveCost < ( (Ft*) r)->inactiveCost;
     }
 
-    inline bool
-    increaseNbOverlap ( void *l,
-                        void *r)
-    {
-        return (( Ft*) l)->nbOverlap > (( Ft*) r)->nbOverlap;
+    inline bool increaseNbOverlap (void *l, void *r) {
+        return ( (Ft*) l)->nbOverlap > ( (Ft*) r)->nbOverlap;
     }
 
-    typedef struct
-    {
-            LabelPosition *lp;
-            long int *nbOverlaps;
+
+    typedef struct {
+        LabelPosition *lp;
+        int *nbOverlaps;
     } RemoveOverlapContext;
 
-    bool
-    removeOverlapCallback ( LabelPosition *lp,
-                            void *ctx)
-    {
-        LabelPosition *lp2 = ( LabelPosition*) ctx;
+    bool removeOverlapCallback (LabelPosition *lp, void *ctx) {
+        LabelPosition *lp2 = (LabelPosition *) ctx;
 
-        if (lp2->isInConflict (lp))
-        {
+        if (lp2->isInConflict (lp)) {
             //std::cout << "   hit !" << std::endl;
             lp->nbOverlap--;
             lp2->nbOverlap--;
@@ -189,26 +161,26 @@ namespace pal
         return true;
     }
 
-    void
-    Problem::reduce ()
-    {
 
-        long int i;
-        long int j;
-        long int k;
+    void Problem::reduce() {
 
-        long int counter = 0;
+        int i;
+        int j;
+        int k;
 
-        long int lpid;
+        int counter = 0;
+
+        int lpid;
 
         bool *ok = new bool[nblp];
         bool run = true;
 
-        for ( i = 0; i < nblp; i++)
+        for (i = 0;i < nblp;i++)
             ok[i] = false;
 
-        long double amin[2];
-        long double amax[2];
+
+        double amin[2];
+        double amax[2];
         LabelPosition *lp;
         LabelPosition *lp2;
         long int c;
@@ -219,34 +191,28 @@ namespace pal
         {
             vueltas++;
             run = false;
-            for ( i = 0; i < nbft; i++)
-            {
+            for (i = 0;i < nbft;i++) {
                 // ok[i] = true;
-                for ( j = 0; j < featNbLp[i]; j++)
-                {     // foreach candidate
-                    if (!ok[featStartId[i] + j])
-                    {
-                        if ((lp = labelpositions[featStartId[i] + j])->nbOverlap == 0)
-                        {     // if candidate has no overlap
+                for (j = 0;j < featNbLp[i];j++) {  // foreach candidate
+                    if (!ok[featStartId[i] + j]) {
+                        if ( (lp = labelpositions[featStartId[i] + j])->nbOverlap == 0) { // if candidate has no overlap
                             run = true;
                             ok[featStartId[i] + j] = true;
                             // 1) remove worse candidates from candidates
                             // 2) update nb_overlaps
                             counter += featNbLp[i] - j - 1;
 
-                            for ( k = j + 1; k < featNbLp[i]; k++)
-                            {
+                            for (k = j + 1;k < featNbLp[i];k++) {
 
                                 lpid = featStartId[i] + k;
                                 ok[lpid] = true;
                                 lp2 = labelpositions[lpid];
 
-                                amin[0] = LDBL_MAX;
-                                amax[0] = -LDBL_MAX;
-                                amin[1] = LDBL_MAX;
-                                amax[1] = -LDBL_MAX;
-                                for ( c = 0; c < 4; c++)
-                                {
+                                amin[0] = DBL_MAX;
+                                amax[0] = -DBL_MAX;
+                                amin[1] = DBL_MAX;
+                                amax[1] = -DBL_MAX;
+                                for (c = 0;c < 4;c++) {
                                     if (lp2->x[c] < amin[0])
                                         amin[0] = lp2->x[c];
                                     if (lp2->x[c] > amax[0])
@@ -258,11 +224,11 @@ namespace pal
                                 }
 
                                 nbOverlap -= lp2->nbOverlap;
-                                long int cand= candidates->Search (amin, amax, removeOverlapCallback, ( void*) lp2);
+                                candidates->Search (amin, amax, removeOverlapCallback, (void*) lp2);
                                 lp2->removeFromIndex (candidates);
                             }
 
-                            //                            lp->removeFromIndex(candidates);
+                            //lp->removeFromIndex(candidates);
                             featNbLp[i] = j + 1;
                             break;
                         }
@@ -278,82 +244,71 @@ namespace pal
 #endif
 
         this->nblp -= counter;
-
 #ifdef _VERBOSE_
         std::cout << "problem reduce to " << nblp << " candidates which makes " << nbOverlap << " overlaps"  << std::endl;
 #endif
-
         delete[] ok;
     }
 
     /**
      * \brief Basic initial solution : every feature to -1
      */
-    void
-    Problem::init_sol_empty ()
-    {
-        long int i;
+    void Problem::init_sol_empty() {
+        int i;
 
-        if (sol)
-        {
+        if (sol) {
             if (sol->s)
                 delete[] sol->s;
             delete sol;
         }
 
-        sol = new Sol ();
-        sol->s = new long int[nbft];
+        sol = new Sol();
+        sol->s = new int[nbft];
 
-        for ( i = 0; i < nbft; i++)
+        for (i = 0;i < nbft;i++)
             sol->s[i] = -1;
 
         sol->cost = nbft;
     }
 
-    typedef struct
-    {
-            PriorityQueue *list;
-            LabelPosition *lp;
-            RTree< LabelPosition*, long  double, 2, long  double> *candidates;
+
+
+
+    typedef struct {
+        PriorityQueue *list;
+        LabelPosition *lp;
+        RTree <LabelPosition*, double, 2, double> *candidates;
     } FalpContext;
 
-    bool
-    falpCallback2 ( LabelPosition *lp,
-                    void *ctx)
-    {
-        LabelPosition *lp2 = (( FalpContext*) ctx)->lp;
-        PriorityQueue *list = (( FalpContext*) ctx)->list;
+    bool falpCallback2 (LabelPosition *lp, void *  ctx) {
+        LabelPosition *lp2 = ( (FalpContext*) ctx)->lp;
+        PriorityQueue *list = ( (FalpContext*) ctx)->list;
 
-        if (lp->id != lp2->id && list->isIn (lp->id) && lp->isInConflict (lp2))
-        {
+        if (lp->id != lp2->id && list->isIn (lp->id) && lp->isInConflict (lp2)) {
             list->decreaseKey (lp->id);
         }
         return true;
     }
 
-    void
-    ignoreLabel ( LabelPosition *lp,
-                  PriorityQueue *list,
-                  RTree< LabelPosition*, long  double, 2, long  double> *candidates)
-    {
 
-        FalpContext *context = new FalpContext ();
+    void ignoreLabel (LabelPosition *lp, PriorityQueue *list, RTree <LabelPosition*, double, 2, double> *candidates) {
+
+
+        FalpContext *context = new FalpContext();
         context->candidates = NULL;
         context->list = list;
-        long double amin[2];
-        long double amax[2];
-        long int c;
+        double amin[2];
+        double amax[2];
+        int c;
 
-        if (list->isIn (lp->id))
-        {
+        if (list->isIn (lp->id)) {
             list->remove (lp->id);
 
-            amin[0] = LDBL_MAX;
-            amax[0] = -LDBL_MAX;
-            amin[1] = LDBL_MAX;
-            amax[1] = -LDBL_MAX;
-            for ( c = 0; c < 4; c++)
-            {
+            amin[0] = DBL_MAX;
+            amax[0] = -DBL_MAX;
+            amin[1] = DBL_MAX;
+            amax[1] = -DBL_MAX;
+            for (c = 0;c < 4;c++) {
                 if (lp->x[c] < amin[0])
                     amin[0] = lp->x[c];
                 if (lp->x[c] > amax[0])
@@ -370,81 +325,80 @@ namespace pal
         delete context;
     }
 
-    bool
-    falpCallback1 ( LabelPosition *lp,
-                    void *ctx)
-    {
-        LabelPosition *lp2 = (( FalpContext*) ctx)->lp;
-        PriorityQueue *list = (( FalpContext*) ctx)->list;
-        RTree< LabelPosition*, long  double, 2, long  double> *candidates = (( FalpContext*) ctx)->candidates;
 
-        if (lp2->isInConflict (lp))
-        {
+    bool falpCallback1 (LabelPosition *lp, void *  ctx) {
+        LabelPosition *lp2 = ( (FalpContext*) ctx)->lp;
+        PriorityQueue *list = ( (FalpContext*) ctx)->list;
+        RTree <LabelPosition*, double, 2, double> *candidates = ( (FalpContext*) ctx)->candidates;
+
+        if (lp2->isInConflict (lp)) {
             ignoreLabel (lp, list, candidates);
         }
         return true;
     }
 
+
+
     /* Better initial solution
      * Step one FALP (Yamamoto, Camara, Lorena 2005)
      */
-    void
-    Problem::init_sol_falp ()
-    {
+    void Problem::init_sol_falp() {
 #ifdef _DEBUG_
         std::cout << "Init solution FALP" << std::endl;
 #endif
 
-        long int i, j;
-        long int label;
+        int i, j;
+        int label;
         PriorityQueue *list;
 
-        init_sol_empty ();
+        init_sol_empty();
 
         list = new PriorityQueue (nblp, all_nblp, true);
 
-        long double amin[2];
-        long double amax[2];
-        long int c;
+        double amin[2];
+        double amax[2];
+        int c;
 
-        FalpContext *context = new FalpContext ();
+        FalpContext *context = new FalpContext();
         context->candidates = candidates;
         context->list = list;
 
         LabelPosition *lp;
 
-        for ( i = 0; i < nbft; i++)
-            for ( j = 0; j < featNbLp[i]; j++)
-            {
+        for (i = 0;i < nbft;i++)
+            for (j = 0;j < featNbLp[i];j++) {
                 label = featStartId[i] + j;
-                list->insert (label, (long double) labelpositions[label]->nbOverlap);
+                list->insert (label, (double) labelpositions[label]->nbOverlap);
             }
 
-        while (list->getSize () > 0)
-        {     // O (log size)
-            label = list->getBest ();     // O (log size)
+        while (list->getSize() > 0) { // O (log size)
+            label = list->getBest();   // O (log size)
+
 
             lp = labelpositions[label];
 
-            if (lp->id != label)
-            {
+            if (lp->id != label) {
                 std::cout << "Error: " << lp->id << " <--> " << label << std::endl;
             }
 
+
             sol->s[lp->probFeat] = label;
 
-            for ( i = featStartId[lp->probFeat]; i < featStartId[lp->probFeat] + featNbLp[lp->probFeat]; i++)
-            {
+#ifdef _DEBUG_FULL_
+            std::cout << "sol->s[" << lp->probFeat << "] :" << label << std::endl;
+#endif
+
+            for (i = featStartId[lp->probFeat];i < featStartId[lp->probFeat] + featNbLp[lp->probFeat];i++) {
                 ignoreLabel (labelpositions[i], list, candidates);
 
             }
 
-            amin[0] = LDBL_MAX;
-            amax[0] = -LDBL_MAX;
-            amin[1] = LDBL_MAX;
-            amax[1] = -LDBL_MAX;
-            for ( c = 0; c < 4; c++)
-            {
+
+            amin[0] = DBL_MAX;
+            amax[0] = -DBL_MAX;
+            amin[1] = DBL_MAX;
+            amax[1] = -DBL_MAX;
+            for (c = 0;c < 4;c++) {
                 if (lp->x[c] < amin[0])
                     amin[0] = lp->x[c];
                 if (lp->x[c] > amax[0])
@@ -455,36 +409,33 @@ namespace pal
                     amax[1] = lp->y[c];
             }
             context->lp = lp;
-            candidates->Search (amin, amax, falpCallback1, ( void*) context);
+            candidates->Search (amin, amax, falpCallback1, (void*) context);
             candidates_sol->Insert (amin, amax, lp);
         }
 
         delete context;
 
-        if (displayAll)
-        {
-            long int nbOverlap;
-            long int start_p;
-            LabelPosition *retainedLabel = NULL;
-            long int p;
 
-            for ( i = 0; i < nbft; i++)
-            {     // forearch hidden feature
 
-                if (sol->s[i] == -1)
-                {
+
+        if (displayAll) {
+            int nbOverlap;
+            int start_p;
+            LabelPosition* retainedLabel = NULL;
+            int p;
+
+            for (i = 0;i < nbft;i++) { // forearch hidden feature
+                if (sol->s[i] == -1) {
                     nbOverlap = INT_MAX;
                     start_p = featStartId[i];
-                    for ( p = 0; p < featNbLp[i]; p++)
-                    {
-                        lp = labelpositions[start_p + p];
+                    for (p = 0;p < featNbLp[i];p++) {
+                        lp = labelpositions[start_p+p];
                         lp->nbOverlap = 0;
-                        amin[0] = LDBL_MAX;
-                        amax[0] = -LDBL_MAX;
-                        amin[1] = LDBL_MAX;
-                        amax[1] = -LDBL_MAX;
-                        for ( c = 0; c < 4; c++)
-                        {
+                        amin[0] = DBL_MAX;
+                        amax[0] = -DBL_MAX;
+                        amin[1] = DBL_MAX;
+                        amax[1] = -DBL_MAX;
+                        for (c = 0;c < 4;c++) {
                             if (lp->x[c] < amin[0])
                                 amin[0] = lp->x[c];
                             if (lp->x[c] > amax[0])
@@ -494,10 +445,11 @@ namespace pal
                             if (lp->y[c] > amax[1])
                                 amax[1] = lp->y[c];
                         }
+
+
                         candidates_sol->Search (amin, amax, countOverlapCallback, lp);
 
-                        if (lp->nbOverlap < nbOverlap)
-                        {
+                        if (lp->nbOverlap < nbOverlap) {
                             retainedLabel = lp;
                             nbOverlap = lp->nbOverlap;
                         }
@@ -509,30 +461,29 @@ namespace pal
                 }
             }
         }
+
         delete list;
     }
 
-    //#define _DEBUG_
-    void
-    Problem::popmusic ()
-    {
+//#define _DEBUG_
+    void Problem::popmusic() {
 
         if (nbft == 0)
             return;
 
-        long int i;
-        long int seed;
+        int i;
+        int seed;
         bool *ok = new bool[nbft];
 
-        long int r = pal->popmusic_r;
+        int r = pal->popmusic_r;
 
         SearchMethod searchMethod = pal->searchMethod;
 
-        candidates_subsol = new RTree< LabelPosition*, long  double, 2, long  double> ();
+        candidates_subsol = new RTree<LabelPosition*, double, 2, double>();
 
-        long double delta = 0.0;
+        double delta = 0.0;
 
-        long int it = 0;
+        int it = 0;
 
 #ifdef _VERBOSE_
         clock_t start_time = clock();
@@ -543,27 +494,27 @@ namespace pal
 
         SubPart *current = NULL;
 
-        long int subPartTotalSize = 0;
+        int subPartTotalSize = 0;
 
-        labelPositionCost = new long double[all_nblp];
-        nbOlap = new long int[all_nblp];
+        labelPositionCost = new double[all_nblp];
+        nbOlap = new int[all_nblp];
 
-        featWrap = new long int[nbft];
-        memset (featWrap, -1, sizeof(int) * nbft);
+        featWrap = new int[nbft];
+        memset (featWrap, -1, sizeof (int) *nbft);
 
-        SubPart **parts = new SubPart*[nbft];
-        long int *isIn = new long int[nbft];
+        SubPart ** parts = new SubPart*[nbft];
+        int *isIn = new int[nbft];
 
-        memset (isIn, 0, sizeof(int) * nbft);
+        memset (isIn, 0, sizeof (int) *nbft);
 
-        for ( i = 0; i < nbft; i++)
-        {
+
+        for (i = 0;i < nbft;i++) {
             parts[i] = subPart (r, i, isIn);
             subPartTotalSize += parts[i]->subSize;
             ok[i] = false;
         }
         delete[] isIn;
-        sort (( void**) parts, nbft, borderSizeInc);
+        sort ( (void**) parts, nbft, borderSizeInc);
         //sort ((void**)parts, nbft, borderSizeDec);
 
 #ifdef _VERBOSE_
@@ -571,21 +522,22 @@ namespace pal
         std::cout << "   SubPart (averagesize: " << subPartTotalSize / nbft <<  ") creation: " << (double) (create_part_time - start_time) / (double) CLOCKS_PER_SEC << std::endl;
 #endif
 
-        init_sol_falp ();
+        init_sol_falp();
 
 #ifdef _VERBOSE_
         init_sol_time = clock();
         std::cout << "   Compute initial solution: " << (double) (init_sol_time - create_part_time) / (double) CLOCKS_PER_SEC;
 #endif
 
-        solution_cost ();
+        solution_cost();
 
 #ifdef _VERBOSE_
         std::cerr << "\t" << sol->cost << "\t" << nbActive << "\t" << (double) nbActive / (double) nbft;
         std::cout << " (solution cost: " << sol->cost << ", nbDisplayed: " << nbActive  << "(" << (double) nbActive / (double) nbft << "%)" << std::endl;
 #endif
 
-        long int popit = 0;
+
+        int popit = 0;
 
         seed = 0;
         long int vueltas=0;
@@ -595,60 +547,52 @@ namespace pal
             vueltas++,
             it++;
             /* find the next seed not ok */
-            for ( i = (seed + 1) % nbft; ok[i] && i != seed; i = (i + 1) % nbft)
-                ;
-#ifdef _VERBOSE_
-            std::cout << " i "<< i<<" seed "<< seed<< "ok "<< (ok[seed])<<" nbft " <<nbft<< std::endl;
-#endif
-            if (i == seed && ok[seed])
-            {
-                current = NULL;     // everything is OK :-)
+            for (i = (seed + 1) % nbft;ok[i] && i != seed;i = (i + 1) % nbft);
+
+            if (i == seed && ok[seed]) {
+                current = NULL; // everything is OK :-)
                 break;
-            }
-            else
-            {
+            } else {
                 seed = i;
                 current = parts[seed];
             }
 
             // update sub part solution
-            candidates_subsol->RemoveAll ();
+            candidates_subsol->RemoveAll();
 
-            for ( i = 0; i < current->subSize; i++)
-            {
+            for (i = 0;i < current->subSize;i++) {
                 current->sol[i] = sol->s[current->sub[i]];
-                if (current->sol[i] != -1)
-                {
+                if (current->sol[i] != -1) {
                     labelpositions[current->sol[i]]->insertIntoIndex (candidates_subsol);
                 }
             }
 
-            switch (searchMethod)
-            {
+
+
+            switch (searchMethod) {
                 //case branch_and_bound :
                 //delta = current->branch_and_bound_search();
                 //   break;
 
-                case POPMUSIC_TABU:
-                    delta = popmusic_tabu (current);
-                    break;
-                case POPMUSIC_TABU_CHAIN:
-                    delta = popmusic_tabu_chain (current);
-                    break;
-                case POPMUSIC_CHAIN:
-                    delta = popmusic_chain (current);
-                    break;
-                default:
+            case POPMUSIC_TABU :
+                delta = popmusic_tabu (current);
+                break;
+            case POPMUSIC_TABU_CHAIN :
+                delta = popmusic_tabu_chain (current);
+                break;
+            case POPMUSIC_CHAIN :
+                delta = popmusic_chain (current);
+                break;
+            default:
 #ifdef _VERBOSE_
-                    std::cerr << "Unknown search method..." << std::endl;
+                std::cerr << "Unknown search method..." << std::endl;
 #endif
-                    return;
+                return;
             }
 
             popit++;
 
-            if (delta > EPSILON)
-            {
+            if (delta > EPSILON) {
                 /* Update solution */
 #ifdef _DEBUG_FULL_
                 std::cout << "Update solution from subpart, current cost:" << std::endl;
@@ -657,31 +601,25 @@ namespace pal
                 std::cout << "after modif cost:" << std::endl;
                 solution_cost ();
 #endif
-                for ( i = 0; i < current->borderSize; i++)
-                {
+                for (i = 0;i < current->borderSize;i++) {
                     ok[current->sub[i]] = false;
                 }
 
-                for ( i = current->borderSize; i < current->subSize; i++)
-                {
+                for (i = current->borderSize;i < current->subSize;i++) {
 
-                    if (sol->s[current->sub[i]] != -1)
-                    {
+                    if (sol->s[current->sub[i]] != -1) {
                         labelpositions[sol->s[current->sub[i]]]->removeFromIndex (candidates_sol);
                     }
 
                     sol->s[current->sub[i]] = current->sol[i];
 
-                    if (current->sol[i] != -1)
-                    {
+                    if (current->sol[i] != -1) {
                         labelpositions[current->sol[i]]->insertIntoIndex (candidates_sol);
                     }
 
                     ok[current->sub[i]] = false;
                 }
-            }
-            else
-            {                // not improved
+            } else {// not improved
 #ifdef _DEBUG_FULL_
                 std::cout << "subpart not improved" << std::endl;
 #endif
@@ -716,8 +654,7 @@ namespace pal
         delete[] labelPositionCost;
         delete[] nbOlap;
 
-        for ( i = 0; i < nbft; i++)
-        {
+        for (i = 0;i < nbft;i++) {
             delete[] parts[i]->sub;
             delete[] parts[i]->sol;
             delete parts[i];
@@ -730,24 +667,20 @@ namespace pal
     }
 #undef _DEBUG_
 
-    typedef struct
-    {
-            LinkedList< long  int> *queue;
-            long int *isIn;
-            LabelPosition *lp;
+    typedef struct {
+        LinkedList<int> *queue;
+        int *isIn;
+        LabelPosition *lp;
     } SubPartContext;
 
-    bool
-    subPartCallback ( LabelPosition *lp,
-                      void *ctx)
-    {
-        long int lpid = lp->id;
-        long int *isIn = (( SubPartContext*) ctx)->isIn;
-        LinkedList< long  int> *queue = (( SubPartContext*) ctx)->queue;
+    bool subPartCallback (LabelPosition *lp, void *ctx) {
+        int lpid = lp->id;
+        int *isIn = ( (SubPartContext*) ctx)->isIn;
+        LinkedList<int> *queue = ( (SubPartContext*) ctx)->queue;
 
-        long int id = lp->probFeat;
-        if (!isIn[id] && lp->isInConflict ((( SubPartContext*) ctx)->lp))
-        {
+
+        int id = lp->probFeat;
+        if (!isIn[id] && lp->isInConflict ( ( (SubPartContext*) ctx)->lp)) {
             queue->push_back (id);
             isIn[id] = 1;
         }
@@ -756,27 +689,23 @@ namespace pal
     }
 
     /* Select a sub part, expected size of r, from seed */
-    SubPart*
-    Problem::subPart ( long int r,
-                       long int featseed,
-                       long int *isIn)
-    {
-        LinkedList< long  int> *queue = new LinkedList< long  int> (intCompare);
-        LinkedList< long  int> *ri = new LinkedList< long  int> (intCompare);
+    SubPart * Problem::subPart (int r, int featseed, int *isIn) {
+        LinkedList<int> *queue = new LinkedList<int> (intCompare);
+        LinkedList<int> *ri = new LinkedList<int> (intCompare);
 
-        long int *sub;
+        int *sub;
 
-        long int id;
-        register long int featS;
-        register long int p;
-        long int i;
-        long int c;
+        int id;
+        register int featS;
+        register int p;
+        int i;
+        int c;
 
-        long int n = 0;
-        long int nb = 0;
+        int n = 0;
+        int nb = 0;
 
-        long double amin[2];
-        long double amax[2];
+        double amin[2];
+        double amax[2];
 
         SubPartContext context;
         context.queue = queue;
@@ -787,23 +716,20 @@ namespace pal
 
         LabelPosition *lp;
 
-        while (ri->size () < r && queue->size () > 0)
-        {
-            id = queue->pop_front ();
+        while (ri->size() < r && queue->size() > 0) {
+            id = queue->pop_front();
             ri->push_back (id);
 
             featS = featStartId[id];
             p = featNbLp[id];
 
-            for ( i = featS; i < featS + p; i++)
-            {     // foreach candidat of feature 'id'
+            for (i = featS;i < featS + p;i++) {  // foreach candidat of feature 'id'
                 lp = labelpositions[i];
-                amin[0] = LDBL_MAX;
-                amax[0] = -LDBL_MAX;
-                amin[1] = LDBL_MAX;
-                amax[1] = -LDBL_MAX;
-                for ( c = 0; c < 4; c++)
-                {
+                amin[0] = DBL_MAX;
+                amax[0] = -DBL_MAX;
+                amin[1] = DBL_MAX;
+                amax[1] = -DBL_MAX;
+                for (c = 0;c < 4;c++) {
                     if (lp->x[c] < amin[0])
                         amin[0] = lp->x[c];
                     if (lp->x[c] > amax[0])
@@ -814,27 +740,25 @@ namespace pal
                         amax[1] = lp->y[c];
                 }
                 context.lp = lp;
-                candidates->Search (amin, amax, subPartCallback, ( void*) &context);
+                candidates->Search (amin, amax, subPartCallback, (void*) &context);
             }
         }
 
-        nb = queue->size ();
-        n = ri->size ();
+        nb = queue->size();
+        n = ri->size();
 
-        sub = new long int[n + nb];
+        sub = new int[n+nb];
 
         i = 0;
 
-        while (queue->size () > 0)
-        {
-            sub[i] = queue->pop_front ();
+        while (queue->size() > 0) {
+            sub[i] = queue->pop_front();
             isIn[sub[i]] = 0;
             i++;
         }
 
-        while (ri->size () > 0)
-        {
-            sub[i] = ri->pop_front ();
+        while (ri->size() > 0) {
+            sub[i] = ri->pop_front();
             isIn[sub[i]] = 0;
             i++;
         }
@@ -842,51 +766,45 @@ namespace pal
         delete queue;
         delete ri;
 
-        SubPart *subPart = new SubPart ();
+        SubPart *subPart = new SubPart();
 
         subPart->probSize = n;
         subPart->borderSize = nb;
         subPart->subSize = n + nb;
         subPart->sub = sub;
-        subPart->sol = new long int[subPart->subSize];
+        subPart->sol = new int [subPart->subSize];
         subPart->seed = featseed;
         return subPart;
     }
 
+
     /** From SubPart.cpp ***/
 
-    long double
-    Problem::compute_feature_cost ( SubPart *part,
-                                    long int feat_id,
-                                    long int label_id,
-                                    long int *nbOverlap)
-    {
-        long double cost;
+    double Problem::compute_feature_cost (SubPart *part, int feat_id, int label_id, int *nbOverlap) {
+        double cost;
         *nbOverlap = 0;
 
-        long int c;
+        int c;
 
         CountContext context;
         context.inactiveCost = inactiveCost;
         context.nbOv = nbOverlap;
         context.cost = &cost;
 
-        long double amin[2];
-        long double amax[2];
+        double amin[2];
+        double amax[2];
         LabelPosition *lp;
 
         cost = 0.0;
 
-        if (label_id >= 0)
-        {     // is the feature displayed ?
+        if (label_id >= 0) { // is the feature displayed ?
             lp = labelpositions[label_id];
 
-            amin[0] = LDBL_MAX;
-            amax[0] = -LDBL_MAX;
-            amin[1] = LDBL_MAX;
-            amax[1] = -LDBL_MAX;
-            for ( c = 0; c < 4; c++)
-            {
+            amin[0] = DBL_MAX;
+            amax[0] = -DBL_MAX;
+            amin[1] = DBL_MAX;
+            amax[1] = -DBL_MAX;
+            for (c = 0;c < 4;c++) {
                 if (lp->x[c] < amin[0])
                     amin[0] = lp->x[c];
                 if (lp->x[c] > amax[0])
@@ -897,12 +815,10 @@ namespace pal
                     amax[1] = lp->y[c];
             }
             context.lp = lp;
-            candidates_subsol->Search (amin, amax, countFullOverlapCallback, ( void*) &context);
+            candidates_subsol->Search (amin, amax, countFullOverlapCallback, (void*) &context);
 
             cost += lp->cost;
-        }
-        else
-        {
+        } else {
             cost = inactiveCost[part->sub[feat_id]];
             //(*nbOverlap)++;
         }
@@ -911,19 +827,14 @@ namespace pal
 
     }
 
-    long double
-    Problem::compute_subsolution_cost ( SubPart *part,
-                                        long int *s,
-                                        long int *nbOverlap)
-    {
-        long int i;
-        long double cost = 0.0;
-        long int nbO = 0;
+    double Problem::compute_subsolution_cost (SubPart *part, int *s, int *nbOverlap) {
+        int i;
+        double cost = 0.0;
+        int nbO = 0;
 
         *nbOverlap = 0;
 
-        for ( i = 0; i < part->subSize; i++)
-        {
+        for (i = 0;i < part->subSize;i++) {
             cost += compute_feature_cost (part, i, s[i], &nbO);
             *nbOverlap += nbO;
         }
@@ -931,50 +842,37 @@ namespace pal
         return cost;
     }
 
-    typedef struct _Triple
-    {
-            long int feat_id;
-            long int label_id;
-            long double cost;
-            long int nbOverlap;
+
+
+    typedef struct _Triple {
+        int feat_id;
+        int label_id;
+        double cost;
+        int nbOverlap;
     } Triple;
 
-    bool
-    decreaseCost ( void *tl,
-                   void *tr)
-    {
-        return (( Triple*) tl)->cost < (( Triple*) tr)->cost;
+
+    bool decreaseCost (void *tl, void *tr) {
+        return ( (Triple*) tl)->cost < ( (Triple*) tr)->cost;
     }
 
-    bool
-    increaseCost ( void *tl,
-                   void *tr)
-    {
-        return (( Triple*) tl)->cost > (( Triple*) tr)->cost;
+    bool increaseCost (void *tl, void *tr) {
+        return ( (Triple*) tl)->cost > ( (Triple*) tr)->cost;
     }
 
-    inline void
-    actualizeTabuCandidateList ( long int m,
-                                 long int iteration,
-                                 long int nbOverlap,
-                                 long int *candidateListSize,
-                                 long double candidateBaseFactor,
-                                 long double *candidateFactor,
-                                 long int minCandidateListSize,
-                                 long double reductionFactor,
-                                 long int minTabuTSize,
-                                 long double tabuFactor,
-                                 long int *tenure,
-                                 long int n)
-    {
+
+
+    inline void actualizeTabuCandidateList (int m, int iteration, int nbOverlap, int *candidateListSize,
+                                            double candidateBaseFactor, double *candidateFactor,
+                                            int minCandidateListSize, double reductionFactor,
+                                            int minTabuTSize, double tabuFactor, int *tenure, int n) {
 
         if (*candidateFactor > candidateBaseFactor)
             *candidateFactor /= reductionFactor;
 
-        if (iteration % m == 0)
-        {
-            *tenure = minTabuTSize + ( int) (tabuFactor * nbOverlap);
-            *candidateListSize = minCandidateListSize + ( int) (*candidateFactor * nbOverlap);
+        if (iteration % m == 0) {
+            *tenure = minTabuTSize + (int) (tabuFactor * nbOverlap);
+            *candidateListSize = minCandidateListSize + (int) (*candidateFactor * nbOverlap);
 
             if (*candidateListSize > n)
                 *candidateListSize = n;
@@ -982,58 +880,48 @@ namespace pal
 
     }
 
-    inline void
-    actualizeCandidateList ( long int nbOverlap,
-                             long int *candidateListSize,
-                             long double candidateBaseFactor,
-                             long double *candidateFactor,
-                             long int minCandidateListSize,
-                             long double growingFactor,
-                             long int n)
-    {
+
+    inline void actualizeCandidateList (int nbOverlap, int *candidateListSize, double candidateBaseFactor,
+                                        double *candidateFactor, int minCandidateListSize, double growingFactor, int n) {
 
         candidateBaseFactor += 0;
 
         if (*candidateListSize < n)
             *candidateFactor = *candidateFactor * growingFactor;
-        *candidateListSize = minCandidateListSize + ( int) (*candidateFactor * nbOverlap);
+        *candidateListSize = minCandidateListSize + (int) (*candidateFactor * nbOverlap);
 
         if (*candidateListSize > n)
             *candidateListSize = n;
     }
 
-    typedef struct
-    {
-            LabelPosition *lp;
-            Triple **candidates;
-            long double *labelPositionCost;
-            long int *nbOlap;
-            long double diff_cost;
-            long int *featWrap;
-            long int *sol;
-            long int borderSize;
+
+
+
+    typedef struct {
+        LabelPosition *lp;
+        Triple **candidates;
+        double *labelPositionCost;
+        int *nbOlap;
+        double diff_cost;
+        int *featWrap;
+        int *sol;
+        int borderSize;
     } UpdateContext;
 
-    bool
-    updateCandidatesCost ( LabelPosition *lp,
-                           void *context)
-    {
-        UpdateContext *ctx = ( UpdateContext*) context;
+    bool updateCandidatesCost (LabelPosition *lp, void *context) {
+        UpdateContext *ctx = (UpdateContext*) context;
 
-        if (ctx->lp->isInConflict (lp))
-        {
+        if (ctx->lp->isInConflict (lp)) {
             ctx->labelPositionCost[lp->id] += ctx->diff_cost;
             if (ctx->diff_cost > 0)
                 ctx->nbOlap[lp->id]++;
             else
                 ctx->nbOlap[lp->id]--;
 
-            long int feat_id = ctx->featWrap[ctx->lp->probFeat];
-            long int feat_id2;
-            if (feat_id >= 0 && ctx->sol[feat_id] == lp->id)
-            {     // this label is in use
-                if ((feat_id2 = feat_id - ctx->borderSize) >= 0)
-                {
+            int feat_id = ctx->featWrap[ctx->lp->probFeat];
+            int feat_id2;
+            if (feat_id >= 0 && ctx->sol[feat_id] == lp->id) { // this label is in use
+                if ( (feat_id2 = feat_id - ctx->borderSize) >= 0) {
                     ctx->candidates[feat_id2]->cost += ctx->diff_cost;
                     ctx->candidates[feat_id2]->nbOverlap--;
                 }
@@ -1042,71 +930,74 @@ namespace pal
         return true;
     }
 
-    long double
-    Problem::popmusic_tabu ( SubPart *part)
-    {
+
+
+
+    double Problem::popmusic_tabu (SubPart *part) {
 #ifdef _DEBUG_FULL_
         std::cout << "Subpart: Tabu Search" << std::endl;
 #endif
 
-        long int probSize = part->probSize;
-        long int borderSize = part->borderSize;
-        long int subSize = part->subSize;
-        long int *sub = part->sub;
-        long int *sol = part->sol;
+        int probSize = part->probSize;
+        int borderSize = part->borderSize;
+        int subSize = part->subSize;
+        int *sub = part->sub;
+        int *sol = part->sol;
 
         Triple **candidateList = new Triple*[probSize];
         Triple **candidateListUnsorted = new Triple*[probSize];
 
-        long int *best_sol = new long int[subSize];
+        int * best_sol = new int[subSize];
 
-        long double cur_cost;
-        long double best_cost;
-        long double initial_cost;
+        double cur_cost;
+        double best_cost;
+        double initial_cost;
 
-        long int *tabu_list = new long int[probSize];
+        int *tabu_list = new int[probSize];
 
-        long int i;
-        long int j;
+        int i;
+        int j;
 
-        long int itwImp;
-        long int it = 0;
-        long int max_it;
-        long int stop_it;
+        int itwImp;
+        int it = 0;
+        int max_it;
+        int stop_it;
 
-        long double delta;
-        long double delta_min;
+        double delta;
+        double delta_min;
         bool authorized;
 
-        long int feat_id;
-        long int feat_sub_id;
-        long int label_id;
-        long int p;
+        int feat_id;
+        int feat_sub_id;
+        int label_id;
+        int p;
 
-        long int choosed_feat;
-        long int choosed_label;
-        long int candidateId;
+        int choosed_feat;
+        int choosed_label;
+        int candidateId;
 
-        long int nbOverlap = 0;
+        int nbOverlap = 0;
         //int nbOverlapLabel;
 
-        long int tenure = 10;     //
-        long int m = 50;     // m   [10;50]
 
-        long int minTabuTSize = 9;     // min_t [2;10]
-        long double tabuFactor = 0.5;     // p_t [0.1;0.8]
+        int tenure = 10;  //
+        int m = 50; // m   [10;50]
 
-        long int minCandidateListSize = 18;     // min_c   [2;20]
+        int minTabuTSize = 9; // min_t [2;10]
+        double tabuFactor = 0.5; // p_t [0.1;0.8]
 
-        long double candidateBaseFactor = 0.73;     // p_base  [0.1;0.8]
+        int minCandidateListSize = 18; // min_c   [2;20]
 
-        long double growingFactor = 15;     // fa  [5;20]
-        long double reductionFactor = 1.3;     // f_r [1.1;1.5]
+        double candidateBaseFactor = 0.73; // p_base  [0.1;0.8]
 
-        long int candidateListSize = minCandidateListSize;
-        long double candidateFactor = candidateBaseFactor;
+        double growingFactor = 15; // fa  [5;20]
+        double reductionFactor = 1.3; // f_r [1.1;1.5]
 
-        long int first_lp;
+        int candidateListSize = minCandidateListSize;
+        double candidateFactor = candidateBaseFactor;
+
+
+        int first_lp;
 
         //double EPSILON = 0.000001;
         max_it = probSize * pal->tabuMaxIt;
@@ -1118,118 +1009,100 @@ namespace pal
         cur_cost = 0.0;
         nbOverlap = 0;
 
-        long int lp;
-        for ( i = 0; i < subSize; i++)
+
+        int lp;
+        for (i = 0;i < subSize;i++)
             featWrap[sub[i]] = i;
 
-        for ( i = 0; i < subSize; i++)
-        {
+        for (i = 0;i < subSize;i++) {
             j = featStartId[sub[i]];
-            for ( lp = 0; lp < featNbLp[sub[i]]; lp++)
-            {
+            for (lp = 0;lp < featNbLp[sub[i]];lp++) {
                 it = j + lp;
                 //std::cerr << "it = " << j << " + " << lp << std::endl;
                 // std::cerr << "it/nblp:" << it << "/" << all_nblp << std::endl;
-                labelPositionCost[it] = compute_feature_cost (part, i, it, &(nbOlap[it]));
+                labelPositionCost[it] = compute_feature_cost (part, i, it, & (nbOlap[it]));
                 //std::cerr << "nbOlap[" << it << "] : " << nbOlap[it] << std::endl;
             }
         }
 
         first_lp = (displayAll ? 0 : -1);
-        for ( i = 0; i < probSize; i++)
-        {
+        for (i = 0;i < probSize;i++) {
 
-            tabu_list[i] = -1;     // nothing is tabu
+            tabu_list[i] = -1; // nothing is tabu
 
-            candidateList[i] = new Triple ();
+            candidateList[i] = new Triple();
             candidateList[i]->feat_id = i + borderSize;
-            candidateList[i]->label_id = sol[i + borderSize];
+            candidateList[i]->label_id = sol[i+borderSize];
 
             candidateListUnsorted[i] = candidateList[i];
 
-            if (sol[i + borderSize] >= 0)
-            {
-                j = sol[i + borderSize];
+            if (sol[i+borderSize] >= 0) {
+                j = sol[i+borderSize];
                 candidateList[i]->cost = labelPositionCost[j];
                 candidateList[i]->nbOverlap = nbOlap[j];
-            }
-            else
-            {
-                candidateList[i]->cost = inactiveCost[sub[i + borderSize]];
+            } else {
+                candidateList[i]->cost = inactiveCost[sub[i+borderSize]];
                 candidateList[i]->nbOverlap = 1;
             }
 
         }
 
-        for ( i = 0; i < subSize; i++)
-        {
-            if (sol[i] == -1)
-            {
+
+        for (i = 0;i < subSize;i++) {
+            if (sol[i] == -1) {
                 cur_cost += inactiveCost[sub[i]];
-            }
-            else
-            {
+            } else {
                 nbOverlap += nbOlap[sol[i]];
                 cur_cost += labelPositionCost[sol[i]];
             }
         }
 
-        sort (( void**) candidateList, probSize, decreaseCost);
+        sort ( (void**) candidateList, probSize, decreaseCost);
 
         best_cost = cur_cost;
         initial_cost = cur_cost;
-        memcpy (best_sol, sol, sizeof(long int) * (subSize));
+        memcpy (best_sol, sol, sizeof (int) * (subSize));
 
         // START TABU
 
         it = 0;
-        while (it < stop_it && best_cost >= EPSILON)
-        {
+        while (it < stop_it && best_cost >= EPSILON) {
 #ifdef _DEBUG_FULL_
             std::cout << "  ITERATION : " << it << " stop: " << stop_it << std::endl;
 #endif
-            actualizeTabuCandidateList (m, it, nbOverlap, &candidateListSize, candidateBaseFactor, &candidateFactor, minCandidateListSize, reductionFactor, minTabuTSize, tabuFactor, &tenure,
-                                        probSize);
-            delta_min = LDBL_MAX;
-            choosed_feat = -1;
+            actualizeTabuCandidateList (m, it, nbOverlap, &candidateListSize, candidateBaseFactor, &candidateFactor, minCandidateListSize, reductionFactor, minTabuTSize, tabuFactor, &tenure, probSize);
+            delta_min     = DBL_MAX;
+            choosed_feat  = -1;
             choosed_label = -2;
-            candidateId = -1;
+            candidateId   = -1;
 
             // foreach retained Candidate
-            for ( i = 0; i < candidateListSize; i++)
-            {
-                feat_id = candidateList[i]->feat_id;
+            for (i = 0;i < candidateListSize;i++) {
+                feat_id     = candidateList[i]->feat_id;
                 feat_sub_id = sub[feat_id];
-                label_id = candidateList[i]->label_id;
+                label_id    = candidateList[i]->label_id;
 
-                long int oldPos = (label_id < 0 ? -1 : label_id - featStartId[feat_sub_id]);
+                int oldPos  = (label_id < 0 ? -1 : label_id - featStartId[feat_sub_id]);
+
 
                 p = featNbLp[feat_sub_id];
 
                 /* label -1 means inactive feature */
                 // foreach labelposition of feature minus the one in the solution
-                for ( j = first_lp; j < p; j++)
-                {
-                    if (j != oldPos)
-                    {
+                for (j = first_lp;j < p;j++) {
+                    if (j != oldPos) {
 
-                        if (sol[feat_id] < 0)
-                        {
+                        if (sol[feat_id] < 0) {
                             delta = -inactiveCost[feat_sub_id];
-                        }
-                        else
-                        {
+                        } else {
                             delta = -labelPositionCost[sol[feat_id]];
                             delta -= nbOlap[sol[feat_id]] * (inactiveCost[feat_sub_id] + labelpositions[label_id]->cost);
                         }
 
-                        if (j >= 0)
-                        {
+                        if (j >= 0) {
                             delta += labelPositionCost[featStartId[feat_sub_id] + j];
                             delta += nbOlap[featStartId[feat_sub_id] + j] * (inactiveCost[feat_sub_id] + labelpositions[featStartId[feat_sub_id] + j]->cost);
-                        }
-                        else
-                        {
+                        } else {
                             delta += inactiveCost[feat_sub_id];
                         }
 
@@ -1248,8 +1121,7 @@ namespace pal
                             std::cout << "      Move is ok" << std::endl;
                         }
 #endif
-                        if (delta < delta_min && authorized)
-                        {
+                        if (delta < delta_min && authorized) {
 #ifdef _DEBUG_FULL_
                             std::cout << "      keep move" << std::endl;
                             std::cout << "  choosed_feat: " << feat_id << std::endl;
@@ -1283,8 +1155,7 @@ namespace pal
             }
 
             // if a modification has been retained
-            if (choosed_feat >= 0)
-            {
+            if (choosed_feat >= 0) {
 #ifdef _DEBUG_FULL_
                 std::cout << " Apply move:" << std::endl;
                 std::cout << "       feat: " << choosed_feat << std::endl;
@@ -1292,9 +1163,9 @@ namespace pal
                 std::cout << "      delta: " << delta_min << std::endl << std::endl;
 #endif
                 // update the solution and update tabu list
-                long int old_label = sol[choosed_feat];
+                int old_label = sol[choosed_feat];
 
-                tabu_list[choosed_feat - borderSize] = it + tenure;
+                tabu_list[choosed_feat-borderSize] = it + tenure;
                 sol[choosed_feat] = choosed_label;
                 candidateList[candidateId]->label_id = choosed_label;
 
@@ -1302,24 +1173,21 @@ namespace pal
                     labelpositions[old_label]->removeFromIndex (candidates_subsol);
 
                 /* re-compute all labelpositioncost that overlap with old an new label */
-                long double local_inactive = inactiveCost[sub[choosed_feat]];
+                double local_inactive = inactiveCost[sub[choosed_feat]];
 
-                if (choosed_label != -1)
-                {
+                if (choosed_label != -1) {
                     candidateList[candidateId]->cost = labelPositionCost[choosed_label];
                     candidateList[candidateId]->nbOverlap = nbOlap[choosed_label];
-                }
-                else
-                {
+                } else {
                     candidateList[candidateId]->cost = local_inactive;
                     candidateList[candidateId]->nbOverlap = 1;
                 }
 
                 cur_cost += delta_min;
 
-                long double amin[2];
-                long double amax[2];
-                long int c;
+                double amin[2];
+                double amax[2];
+                int c;
                 LabelPosition *lp;
 
                 UpdateContext context;
@@ -1331,16 +1199,15 @@ namespace pal
                 context.sol = sol;
                 context.borderSize = borderSize;
 
-                if (old_label >= 0)
-                {
+                if (old_label >= 0) {
                     lp = labelpositions[old_label];
 
-                    amin[0] = LDBL_MAX;
-                    amax[0] = -LDBL_MAX;
-                    amin[1] = LDBL_MAX;
-                    amax[1] = -LDBL_MAX;
-                    for ( c = 0; c < 4; c++)
-                    {
+
+                    amin[0] = DBL_MAX;
+                    amax[0] = -DBL_MAX;
+                    amin[1] = DBL_MAX;
+                    amax[1] = -DBL_MAX;
+                    for (c = 0;c < 4;c++) {
                         if (lp->x[c] < amin[0])
                             amin[0] = lp->x[c];
                         if (lp->x[c] > amax[0])
@@ -1356,16 +1223,15 @@ namespace pal
                     candidates->Search (amin, amax, updateCandidatesCost, &context);
                 }
 
-                if (choosed_label >= 0)
-                {
+                if (choosed_label >= 0) {
                     lp = labelpositions[choosed_label];
 
-                    amin[0] = LDBL_MAX;
-                    amax[0] = -LDBL_MAX;
-                    amin[1] = LDBL_MAX;
-                    amax[1] = -LDBL_MAX;
-                    for ( c = 0; c < 4; c++)
-                    {
+
+                    amin[0] = DBL_MAX;
+                    amax[0] = -DBL_MAX;
+                    amin[1] = DBL_MAX;
+                    amax[1] = -DBL_MAX;
+                    for (c = 0;c < 4;c++) {
                         if (lp->x[c] < amin[0])
                             amin[0] = lp->x[c];
                         if (lp->x[c] > amax[0])
@@ -1379,42 +1245,41 @@ namespace pal
                     context.diff_cost = local_inactive + labelpositions[choosed_label]->cost;
                     context.lp = labelpositions[choosed_label];
 
+
                     candidates->Search (amin, amax, updateCandidatesCost, &context);
 
                     lp->insertIntoIndex (candidates_subsol);
                 }
 
-                sort (( void**) candidateList, probSize, decreaseCost);
+                sort ( (void**) candidateList, probSize, decreaseCost);
 
-                if (best_cost - cur_cost > EPSILON)
-                {     // new best sol
+                if (best_cost - cur_cost > EPSILON) { // new best sol
                     best_cost = cur_cost;
-                    memcpy (best_sol, sol, sizeof(long int) * (subSize));
+                    memcpy (best_sol, sol, sizeof (int) * (subSize));
                     stop_it = it + itwImp;
                     if (stop_it > max_it)
                         stop_it = max_it;
                 }
-            }
-            else
-            {
+            } else {
                 /* no feature was selected : increase candidate list size*/
-                actualizeCandidateList (nbOverlap, &candidateListSize, candidateBaseFactor, &candidateFactor, minCandidateListSize, growingFactor, probSize);
+                actualizeCandidateList (nbOverlap, &candidateListSize, candidateBaseFactor,
+                                        &candidateFactor, minCandidateListSize, growingFactor, probSize);
             }
 #ifdef _DEBUG_FULL_
             std::cout << "cost : " << cur_cost << std::endl;
-            long int nbover;
+            int nbover;
             std::cout << "computed cost: " << compute_subsolution_cost (part, sol, &nbover) << std::endl;
             std::cout << "best_cost: " << best_cost << std::endl << std::endl;
 #endif
             it++;
         }
 
-        memcpy (sol, best_sol, sizeof(long int) * (subSize));
+        memcpy (sol, best_sol, sizeof (int) * (subSize));
 
-        for ( i = 0; i < subSize; i++)
+        for (i = 0;i < subSize;i++)
             featWrap[sub[i]] = -1;
 
-        for ( i = 0; i < probSize; i++)
+        for (i = 0;i < probSize;i++)
             delete candidateList[i];
 
         delete[] candidateList;
@@ -1426,25 +1291,27 @@ namespace pal
         return initial_cost - best_cost;
     }
 
-    typedef struct
-    {
-            LabelPosition *lp;
-            long int *tmpsol;
-            long int *featWrap;
-            long int *feat;
-            long int borderSize;
-            LinkedList< ElemTrans*> *currentChain;
-            LinkedList< long  int> *conflicts;
-            long double *delta_tmp;
-            long double *inactiveCost;
+
+
+
+
+    typedef struct {
+        LabelPosition *lp;
+        int *tmpsol;
+        int *featWrap;
+        int *feat;
+        int borderSize;
+        LinkedList<ElemTrans*> *currentChain;
+        LinkedList<int> *conflicts;
+        double *delta_tmp;
+        double *inactiveCost;
 
     } ChainContext;
 
-    bool
-    chainCallback ( LabelPosition *lp,
-                    void *context)
-    {
-        ChainContext *ctx = ( ChainContext*) context;
+
+    bool chainCallback (LabelPosition *lp, void *context) {
+        ChainContext *ctx = (ChainContext*) context;
+
 
 #ifdef _DEBUG_FULL_
         std::cout << "chainCallback" << std::endl;
@@ -1462,22 +1329,19 @@ namespace pal
 #ifdef _DEBUG_FULL_
         std::cout << "ejChCallBack: " << lp->id << "<->" << ctx->lp->id << std::endl;
 #endif
-        if (lp->isInConflict (ctx->lp))
-        {
+        if (lp->isInConflict (ctx->lp)) {
 #ifdef _DEBUG_FULL_
             std::cout << "ejChCallBack: " << lp->id << "<->" << ctx->lp->id << std::endl;
             std::cout << "    Conflictual..." << std::endl;
 #endif
-            long int feat, rfeat;
+            int feat, rfeat;
             bool sub = ctx->featWrap;
 
             feat = lp->probFeat;
-            if (sub)
-            {
+            if (sub) {
                 rfeat = feat;
                 feat = ctx->featWrap[feat];
-            }
-            else
+            } else
                 rfeat = feat;
 
 #ifdef _DEBUG_FULL_
@@ -1485,34 +1349,29 @@ namespace pal
             std::cout << "    sol: " << ctx->tmpsol[feat] << "/" << lp->id << std::endl;
             std::cout << "    border:" << ctx->borderSize << std::endl;
 #endif
-            if (feat >= 0 && ctx->tmpsol[feat] == lp->id)
-            {
-                if (sub && feat < ctx->borderSize)
-                {
+            if (feat >= 0 && ctx->tmpsol[feat] == lp->id) {
+                if (sub && feat < ctx->borderSize) {
 #ifdef _DEBUG_FULL_
                     std::cout << "    Cannot touch border (throw) !" << std::endl;
 #endif
-                    throw -2;
+                    throw - 2;
                 }
             }
 
             // is there any cycles ?
-            Cell< ElemTrans*> *cur = ctx->currentChain->getFirst ();
+            Cell<ElemTrans*> *cur = ctx->currentChain->getFirst();
 
-            while (cur)
-            {
-                if (cur->item->feat == feat)
-                {
+            while (cur) {
+                if (cur->item->feat == feat) {
 #ifdef _DEBUG_FULL_
                     std::cout << "Cycle into chain (throw) !" << std::endl;
 #endif
-                    throw -1;
+                    throw - 1;
                 }
                 cur = cur->next;
             }
 
-            if (!ctx->conflicts->isIn (feat))
-            {
+            if (!ctx->conflicts->isIn (feat)) {
                 ctx->conflicts->push_back (feat);
                 *ctx->delta_tmp += lp->cost + ctx->inactiveCost[rfeat];
             }
@@ -1520,46 +1379,43 @@ namespace pal
         return true;
     }
 
-    inline Chain*
-    Problem::chain ( SubPart *part,
-                     long int seed)
-    {
+    inline Chain *Problem::chain (SubPart *part, int seed) {
 
-        long int i;
-        long int j;
+        int i;
+        int j;
 
-        long int lid;
+        int lid;
 
         //int probSize   = part->probSize;
-        long int borderSize = part->borderSize;
-        long int subSize = part->subSize;
-        long int *sub = part->sub;
-        long int *sol = part->sol;
-        register long int subseed;
+        int borderSize = part->borderSize;
+        int subSize    = part->subSize;
+        int *sub       = part->sub;
+        int *sol       = part->sol;
+        register int subseed;
 
-        long double delta;
-        long double delta_min;
-        long double delta_best = LDBL_MAX;
-        long double delta_tmp;
+        double delta;
+        double delta_min;
+        double delta_best = DBL_MAX;
+        double delta_tmp;
 
-        long int next_seed;
-        long int retainedLabel;
+        int next_seed;
+        int retainedLabel;
         Chain *retainedChain = NULL;
 
-        long int max_degree = pal->ejChainDeg;
+        int max_degree = pal->ejChainDeg;
 
-        long int seedNbLp;
+        int seedNbLp;
 
-        LinkedList< ElemTrans*> *currentChain = new LinkedList< ElemTrans*> (ptrETCompare);
-        LinkedList< long  int> *conflicts = new LinkedList< long  int> (intCompare);
+        LinkedList<ElemTrans*> *currentChain = new LinkedList<ElemTrans*> (ptrETCompare);
+        LinkedList<int> *conflicts = new LinkedList<int> (intCompare);
 
-        long int *tmpsol = new long int[subSize];
-        memcpy (tmpsol, sol, sizeof(long int) * subSize);
+        int *tmpsol = new int[subSize];
+        memcpy (tmpsol, sol, sizeof (int) *subSize);
 
         LabelPosition *lp;
-        long double amin[2];
-        long double amax[2];
-        long int c;
+        double amin[2];
+        double amax[2];
+        int c;
 
         ChainContext context;
         context.featWrap = featWrap;
@@ -1572,16 +1428,16 @@ namespace pal
         context.delta_tmp = &delta_tmp;
 
         delta = 0;
-        while (seed != -1)
-        {
+        while (seed != -1) {
             subseed = sub[seed];
             seedNbLp = featNbLp[subseed];
-            delta_min = LDBL_MAX;
+            delta_min = DBL_MAX;
 #ifdef _DEBUG_FULL_
             std::cout << "New seed: " << seed << "/" << subseed << std::endl;
 #endif
             next_seed = -1;
             retainedLabel = -2;
+
 
             if (tmpsol[seed] == -1)
                 delta -= inactiveCost[subseed];
@@ -1589,27 +1445,22 @@ namespace pal
                 delta -= labelpositions[tmpsol[seed]]->cost;
 
             // TODO modify to handle displayAll param
-            for ( i = -1; i < seedNbLp; i++)
-            {
-                try
-                {
+            for (i = -1;i < seedNbLp;i++) {
+                try {
                     // Skip active label !
-                    if (!(tmpsol[seed] == -1 && i == -1) && i + featStartId[subseed] != tmpsol[seed])
-                    {
-                        if (i != -1)
-                        {
+                    if (! (tmpsol[seed] == -1 && i == -1) && i + featStartId[subseed] != tmpsol[seed]) {
+                        if (i != -1) {
                             lid = featStartId[subseed] + i;
                             delta_tmp = delta;
 
                             lp = labelpositions[lid];
 
                             // evaluate conflicts graph in solution after moving seed's label
-                            amin[0] = LDBL_MAX;
-                            amax[0] = -LDBL_MAX;
-                            amin[1] = LDBL_MAX;
-                            amax[1] = -LDBL_MAX;
-                            for ( c = 0; c < 4; c++)
-                            {
+                            amin[0] = DBL_MAX;
+                            amax[0] = -DBL_MAX;
+                            amin[1] = DBL_MAX;
+                            amax[1] = -DBL_MAX;
+                            for (c = 0;c < 4;c++) {
                                 if (lp->x[c] < amin[0])
                                     amin[0] = lp->x[c];
                                 if (lp->x[c] > amax[0])
@@ -1621,43 +1472,37 @@ namespace pal
                             }
                             context.lp = lp;
 
-                            if (conflicts->size () != 0)
+                            if (conflicts->size() != 0)
                                 std::cerr << "Conflicts not empty !!" << std::endl;
 
                             // search ative conflicts and count them
-                            candidates_subsol->Search (amin, amax, chainCallback, ( void*) &context);
+                            candidates_subsol->Search (amin, amax, chainCallback, (void*) &context);
 
 #ifdef _DEBUG_FULL_
                             std::cout << "Conflicts:" <<  conflicts->size() << std::endl;
 #endif
                             // no conflict -> end of chain
-                            if (conflicts->size () == 0)
-                            {
-                                if (!retainedChain || delta + labelpositions[lid]->cost < delta_best)
-                                {
+                            if (conflicts->size() == 0) {
+                                if (!retainedChain || delta + labelpositions[lid]->cost < delta_best) {
 
-                                    if (retainedChain)
-                                    {
+                                    if (retainedChain) {
                                         delete[] retainedChain->label;
                                         delete[] retainedChain->feat;
-                                    }
-                                    else
-                                    {
-                                        retainedChain = new Chain ();     // HERE
+                                    } else {
+                                        retainedChain = new Chain(); // HERE
                                     }
 
                                     delta_best = delta + labelpositions[lid]->cost;
 
-                                    retainedChain->degree = currentChain->size () + 1;
-                                    retainedChain->feat = new long int[retainedChain->degree];     // HERE
-                                    retainedChain->label = new long int[retainedChain->degree];     // HERE
-                                    Cell< ElemTrans*> *current = currentChain->getFirst ();
-                                    ElemTrans *move;
+                                    retainedChain->degree = currentChain->size() + 1;
+                                    retainedChain->feat  = new int[retainedChain->degree]; // HERE
+                                    retainedChain->label = new int[retainedChain->degree]; // HERE
+                                    Cell<ElemTrans*> *current = currentChain->getFirst();
+                                    ElemTrans* move;
                                     j = 0;
-                                    while (current)
-                                    {
+                                    while (current) {
                                         move = current->item;
-                                        retainedChain->feat[j] = move->feat;
+                                        retainedChain->feat[j]  = move->feat;
                                         retainedChain->label[j] = move->new_label;
                                         current = current->next;
                                         j++;
@@ -1669,34 +1514,27 @@ namespace pal
                             }
 
                             // another feature can be ejected
-                            else if (conflicts->size () == 1)
-                            {
-                                if (delta_tmp < delta_min)
-                                {
+                            else if (conflicts->size() == 1) {
+                                if (delta_tmp < delta_min) {
                                     delta_min = delta_tmp;
                                     retainedLabel = lid;
-                                    next_seed = conflicts->pop_front ();
+                                    next_seed =  conflicts->pop_front();
+                                } else {
+                                    conflicts->pop_front();
                                 }
-                                else
-                                {
-                                    conflicts->pop_front ();
-                                }
-                            }
-                            else
-                            {
+                            } else {
 
                                 // A lot of conflict : make them inactive and store chain
-                                Chain *newChain = new Chain ();     // HERE
-                                newChain->degree = currentChain->size () + 1 + conflicts->size ();
-                                newChain->feat = new long int[newChain->degree];     // HERE
-                                newChain->label = new long int[newChain->degree];     // HERE
-                                Cell< ElemTrans*> *current = currentChain->getFirst ();
-                                ElemTrans *move;
+                                Chain *newChain = new Chain();  // HERE
+                                newChain->degree = currentChain->size() + 1 + conflicts->size();
+                                newChain->feat  = new int[newChain->degree]; // HERE
+                                newChain->label = new int[newChain->degree]; // HERE
+                                Cell<ElemTrans*> *current = currentChain->getFirst();
+                                ElemTrans* move;
                                 j = 0;
-                                while (current)
-                                {
+                                while (current) {
                                     move = current->item;
-                                    newChain->feat[j] = move->feat;
+                                    newChain->feat[j]  = move->feat;
                                     newChain->label[j] = move->new_label;
                                     current = current->next;
                                     j++;
@@ -1707,53 +1545,44 @@ namespace pal
                                 newChain->delta = delta + labelpositions[newChain->label[j]]->cost;
                                 j++;
 
-                                while (conflicts->size () > 0)
-                                {
-                                    long int ftid = conflicts->pop_front ();
+
+                                while (conflicts->size() > 0) {
+                                    int ftid = conflicts->pop_front();
                                     newChain->feat[j] = ftid;
                                     newChain->label[j] = -1;
                                     newChain->delta += inactiveCost[sub[ftid]];
                                     j++;
                                 }
 
-                                if (newChain->delta < delta_best)
-                                {
+                                if (newChain->delta < delta_best) {
                                     if (retainedChain)
                                         delete_chain (retainedChain);
 
                                     delta_best = newChain->delta;
                                     retainedChain = newChain;
-                                }
-                                else
-                                {
+                                } else {
                                     delete_chain (newChain);
                                 }
                             }
-                        }
-                        else
-                        {     // Current label == -1   end of chain ...
-                            if (!retainedChain || delta + inactiveCost[subseed] < delta_best)
-                            {
-                                if (retainedChain)
-                                {
+                        } else { // Current label == -1   end of chain ...
+                            if (!retainedChain || delta + inactiveCost[subseed] < delta_best) {
+                                if (retainedChain) {
                                     delete[] retainedChain->label;
                                     delete[] retainedChain->feat;
-                                }
-                                else
-                                    retainedChain = new Chain ();     // HERE
+                                } else
+                                    retainedChain = new Chain(); // HERE
 
                                 delta_best = delta + inactiveCost[subseed];
 
-                                retainedChain->degree = currentChain->size () + 1;
-                                retainedChain->feat = new long int[retainedChain->degree];     // HERE
-                                retainedChain->label = new long int[retainedChain->degree];     // HERE
-                                Cell< ElemTrans*> *current = currentChain->getFirst ();
-                                ElemTrans *move;
+                                retainedChain->degree = currentChain->size() + 1;
+                                retainedChain->feat  = new int[retainedChain->degree]; // HERE
+                                retainedChain->label = new int[retainedChain->degree]; // HERE
+                                Cell<ElemTrans*> *current = currentChain->getFirst();
+                                ElemTrans* move;
                                 j = 0;
-                                while (current)
-                                {
+                                while (current) {
                                     move = current->item;
-                                    retainedChain->feat[j] = move->feat;
+                                    retainedChain->feat[j]  = move->feat;
                                     retainedChain->label[j] = move->new_label;
                                     current = current->next;
                                     j++;
@@ -1764,43 +1593,34 @@ namespace pal
                             }
                         }
                     }
-                }
-                catch (int i)
-                {
+                } catch (int i) {
 #ifdef _DEBUG_FULL_
-                    std::cout << "catch long int " << i << std::endl;
+                    std::cout << "catch int " << i << std::endl;
 #endif
-                    while (conflicts->size () > 0)
-                        conflicts->pop_front ();
+                    while (conflicts->size() > 0)
+                        conflicts->pop_front();
                 }
-            }     // end foreach labelposition
+            } // end foreach labelposition
 
-            if (next_seed == -1)
-            {
+            if (next_seed == -1) {
                 seed = -1;
-            }
-            else if (currentChain->size () > max_degree)
-            {
+            } else if (currentChain->size() > max_degree) {
 #ifdef _VERBOSE_
                 std::cout << "Max degree reached !! (" << max_degree << ")" << std::endl;
 #endif
                 seed = -1;
-            }
-            else
-            {
-                ElemTrans *et = new ElemTrans ();
-                et->feat = seed;
+            } else {
+                ElemTrans *et = new ElemTrans();
+                et->feat  = seed;
                 et->old_label = tmpsol[seed];
                 et->new_label = retainedLabel;
                 currentChain->push_back (et);
 
-                if (et->old_label != -1)
-                {
+                if (et->old_label != -1) {
                     labelpositions[et->old_label]->removeFromIndex (candidates_subsol);
                 }
 
-                if (et->new_label != -1)
-                {
+                if (et->new_label != -1) {
                     labelpositions[et->new_label]->insertIntoIndex (candidates_subsol);
                 }
 
@@ -1810,17 +1630,14 @@ namespace pal
             }
         }
 
-        while (currentChain->size () > 0)
-        {
-            ElemTrans *et = currentChain->pop_front ();
+        while (currentChain->size() > 0) {
+            ElemTrans* et =  currentChain->pop_front();
 
-            if (et->new_label != -1)
-            {
+            if (et->new_label != -1) {
                 labelpositions[et->new_label]->removeFromIndex (candidates_subsol);
             }
 
-            if (et->old_label != -1)
-            {
+            if (et->old_label != -1) {
                 labelpositions[et->old_label]->insertIntoIndex (candidates_subsol);
             }
 
@@ -1831,41 +1648,41 @@ namespace pal
         delete[] tmpsol;
         delete conflicts;
 
+
         return retainedChain;
     }
 
-    inline Chain*
-    Problem::chain ( long int seed)
-    {
 
-        long int i;
-        long int j;
+    inline Chain *Problem::chain (int seed) {
 
-        long int lid;
+        int i;
+        int j;
 
-        long double delta;
-        long double delta_min;
-        long double delta_best = LDBL_MAX;
-        long double delta_tmp;
+        int lid;
 
-        long int next_seed;
-        long int retainedLabel;
+        double delta;
+        double delta_min;
+        double delta_best = DBL_MAX;
+        double delta_tmp;
+
+        int next_seed;
+        int retainedLabel;
         Chain *retainedChain = NULL;
 
-        long int max_degree = pal->ejChainDeg;
+        int max_degree = pal->ejChainDeg;
 
-        long int seedNbLp;
+        int seedNbLp;
 
-        LinkedList< ElemTrans*> *currentChain = new LinkedList< ElemTrans*> (ptrETCompare);
-        LinkedList< long  int> *conflicts = new LinkedList< long  int> (intCompare);
+        LinkedList<ElemTrans*> *currentChain = new LinkedList<ElemTrans*> (ptrETCompare);
+        LinkedList<int> *conflicts = new LinkedList<int> (intCompare);
 
-        long int *tmpsol = new long int[nbft];
-        memcpy (tmpsol, sol->s, sizeof(long int) * nbft);
+        int *tmpsol = new int[nbft];
+        memcpy (tmpsol, sol->s, sizeof (int) *nbft);
 
         LabelPosition *lp;
-        long double amin[2];
-        long double amax[2];
-        long int c;
+        double amin[2];
+        double amax[2];
+        int c;
 
         ChainContext context;
         context.featWrap = NULL;
@@ -1878,10 +1695,9 @@ namespace pal
         context.delta_tmp = &delta_tmp;
 
         delta = 0;
-        while (seed != -1)
-        {
+        while (seed != -1) {
             seedNbLp = featNbLp[seed];
-            delta_min = LDBL_MAX;
+            delta_min = DBL_MAX;
 
             next_seed = -1;
             retainedLabel = -2;
@@ -1892,27 +1708,22 @@ namespace pal
             else
                 delta -= labelpositions[tmpsol[seed]]->cost;
 
-            for ( i = -1; i < seedNbLp; i++)
-            {
-                try
-                {
+            for (i = -1;i < seedNbLp;i++) {
+                try {
                     // Skip active label !
-                    if (!(tmpsol[seed] == -1 && i == -1) && i + featStartId[seed] != tmpsol[seed])
-                    {
-                        if (i != -1)
-                        {     // new_label
+                    if (! (tmpsol[seed] == -1 && i == -1) && i + featStartId[seed] != tmpsol[seed]) {
+                        if (i != -1) { // new_label
                             lid = featStartId[seed] + i;
                             delta_tmp = delta;
 
                             lp = labelpositions[lid];
 
                             // evaluate conflicts graph in solution after moving seed's label
-                            amin[0] = LDBL_MAX;
-                            amax[0] = -LDBL_MAX;
-                            amin[1] = LDBL_MAX;
-                            amax[1] = -LDBL_MAX;
-                            for ( c = 0; c < 4; c++)
-                            {
+                            amin[0] = DBL_MAX;
+                            amax[0] = -DBL_MAX;
+                            amin[1] = DBL_MAX;
+                            amax[1] = -DBL_MAX;
+                            for (c = 0;c < 4;c++) {
                                 if (lp->x[c] < amin[0])
                                     amin[0] = lp->x[c];
                                 if (lp->x[c] > amax[0])
@@ -1923,38 +1734,32 @@ namespace pal
                                     amax[1] = lp->y[c];
                             }
                             context.lp = lp;
-                            if (conflicts->size () != 0)
+                            if (conflicts->size() != 0)
                                 std::cerr << "Conflicts not empty" << std::endl;
 
-                            candidates_sol->Search (amin, amax, chainCallback, ( void*) &context);
+                            candidates_sol->Search (amin, amax, chainCallback, (void*) &context);
 
                             // no conflict -> end of chain
-                            if (conflicts->size () == 0)
-                            {
-                                if (!retainedChain || delta + labelpositions[lid]->cost < delta_best)
-                                {
-                                    if (retainedChain)
-                                    {
+                            if (conflicts->size() == 0) {
+                                if (!retainedChain || delta + labelpositions[lid]->cost < delta_best) {
+                                    if (retainedChain) {
                                         delete[] retainedChain->label;
                                         delete[] retainedChain->feat;
-                                    }
-                                    else
-                                    {
-                                        retainedChain = new Chain ();
+                                    } else {
+                                        retainedChain = new Chain();
                                     }
 
                                     delta_best = delta + labelpositions[lid]->cost;
 
-                                    retainedChain->degree = currentChain->size () + 1;
-                                    retainedChain->feat = new long int[retainedChain->degree];
-                                    retainedChain->label = new long int[retainedChain->degree];
-                                    Cell< ElemTrans*> *current = currentChain->getFirst ();
-                                    ElemTrans *move;
+                                    retainedChain->degree = currentChain->size() + 1;
+                                    retainedChain->feat  = new int[retainedChain->degree];
+                                    retainedChain->label = new int[retainedChain->degree];
+                                    Cell<ElemTrans*> *current = currentChain->getFirst();
+                                    ElemTrans* move;
                                     j = 0;
-                                    while (current)
-                                    {
+                                    while (current) {
                                         move = current->item;
-                                        retainedChain->feat[j] = move->feat;
+                                        retainedChain->feat[j]  = move->feat;
                                         retainedChain->label[j] = move->new_label;
                                         current = current->next;
                                         j++;
@@ -1966,35 +1771,28 @@ namespace pal
                             }
 
                             // another feature can be ejected
-                            else if (conflicts->size () == 1)
-                            {
-                                if (delta_tmp < delta_min)
-                                {
+                            else if (conflicts->size() == 1) {
+                                if (delta_tmp < delta_min) {
                                     delta_min = delta_tmp;
                                     retainedLabel = lid;
-                                    next_seed = conflicts->pop_front ();
+                                    next_seed =  conflicts->pop_front();
+                                } else {
+                                    conflicts->pop_front();
                                 }
-                                else
-                                {
-                                    conflicts->pop_front ();
-                                }
-                            }
-                            else
-                            {
+                            } else {
 
                                 // A lot of conflict : make them inactive and store chain
-                                Chain *newChain = new Chain ();
-                                newChain->degree = currentChain->size () + 1 + conflicts->size ();
-                                newChain->feat = new long int[newChain->degree];
-                                newChain->label = new long int[newChain->degree];
-                                Cell< ElemTrans*> *current = currentChain->getFirst ();
-                                ElemTrans *move;
+                                Chain *newChain = new Chain();
+                                newChain->degree = currentChain->size() + 1 + conflicts->size();
+                                newChain->feat  = new int[newChain->degree];
+                                newChain->label = new int[newChain->degree];
+                                Cell<ElemTrans*> *current = currentChain->getFirst();
+                                ElemTrans* move;
                                 j = 0;
 
-                                while (current)
-                                {
+                                while (current) {
                                     move = current->item;
-                                    newChain->feat[j] = move->feat;
+                                    newChain->feat[j]  = move->feat;
                                     newChain->label[j] = move->new_label;
                                     current = current->next;
                                     j++;
@@ -2007,54 +1805,44 @@ namespace pal
                                 j++;
 
                                 // hide all conflictual candidates
-                                while (conflicts->size () > 0)
-                                {
-                                    long int ftid = conflicts->pop_front ();
+                                while (conflicts->size() > 0) {
+                                    int ftid = conflicts->pop_front();
                                     newChain->feat[j] = ftid;
                                     newChain->label[j] = -1;
                                     newChain->delta += inactiveCost[ftid];
                                     j++;
                                 }
 
-                                if (newChain->delta < delta_best)
-                                {
+                                if (newChain->delta < delta_best) {
                                     if (retainedChain)
                                         delete_chain (retainedChain);
 
                                     delta_best = newChain->delta;
                                     retainedChain = newChain;
-                                }
-                                else
-                                {
+                                } else {
                                     delete_chain (newChain);
                                 }
                             }
 
-                        }
-                        else
-                        {     // Current label == -1   end of chain ...
-                            if (!retainedChain || delta + inactiveCost[seed] < delta_best)
-                            {
-                                if (retainedChain)
-                                {
+                        } else { // Current label == -1   end of chain ...
+                            if (!retainedChain || delta + inactiveCost[seed] < delta_best) {
+                                if (retainedChain) {
                                     delete[] retainedChain->label;
                                     delete[] retainedChain->feat;
-                                }
-                                else
-                                    retainedChain = new Chain ();
+                                } else
+                                    retainedChain = new Chain();
 
                                 delta_best = delta + inactiveCost[seed];
 
-                                retainedChain->degree = currentChain->size () + 1;
-                                retainedChain->feat = new long int[retainedChain->degree];
-                                retainedChain->label = new long int[retainedChain->degree];
-                                Cell< ElemTrans*> *current = currentChain->getFirst ();
-                                ElemTrans *move;
+                                retainedChain->degree = currentChain->size() + 1;
+                                retainedChain->feat  = new int[retainedChain->degree];
+                                retainedChain->label = new int[retainedChain->degree];
+                                Cell<ElemTrans*> *current = currentChain->getFirst();
+                                ElemTrans* move;
                                 j = 0;
-                                while (current)
-                                {
+                                while (current) {
                                     move = current->item;
-                                    retainedChain->feat[j] = move->feat;
+                                    retainedChain->feat[j]  = move->feat;
                                     retainedChain->label[j] = move->new_label;
                                     current = current->next;
                                     j++;
@@ -2065,43 +1853,35 @@ namespace pal
                             }
                         }
                     }
-                }
-                catch (int i)
-                {
+                } catch (int i) {
 #ifdef _DEBUG_FULL_
                     std::cout << "catch Cycle in chain" << std::endl;
 #endif
-                    while (conflicts->size () > 0)
-                        conflicts->pop_front ();
+                    while (conflicts->size() > 0)
+                        conflicts->pop_front();
                 }
-            }     // end foreach labelposition
+            } // end foreach labelposition
 
-            if (next_seed == -1)
-            {
+            if (next_seed == -1) {
                 seed = -1;
-            }
-            else if (currentChain->size () > max_degree)
-            {
+            } else if (currentChain->size() > max_degree) {
                 std::cout << "Max degree reached !! (" << max_degree << ")" << std::endl;
                 seed = -1;
-            }
-            else
-            {
-                ElemTrans *et = new ElemTrans ();
-                et->feat = seed;
+            } else {
+                ElemTrans *et = new ElemTrans();
+                et->feat  = seed;
                 et->old_label = tmpsol[seed];
                 et->new_label = retainedLabel;
                 currentChain->push_back (et);
 
-                if (et->old_label != -1)
-                {
+                if (et->old_label != -1) {
                     labelpositions[et->old_label]->removeFromIndex (candidates_sol);
                 }
 
-                if (et->new_label != -1)
-                {
+                if (et->new_label != -1) {
                     labelpositions[et->new_label]->insertIntoIndex (candidates_sol);
                 }
+
 
                 tmpsol[seed] = retainedLabel;
                 delta += labelpositions[retainedLabel]->cost;
@@ -2109,17 +1889,15 @@ namespace pal
             }
         }
 
-        while (currentChain->size () > 0)
-        {
-            ElemTrans *et = currentChain->pop_front ();
 
-            if (et->new_label != -1)
-            {
+        while (currentChain->size() > 0) {
+            ElemTrans* et =  currentChain->pop_front();
+
+            if (et->new_label != -1) {
                 labelpositions[et->new_label]->removeFromIndex (candidates_sol);
             }
 
-            if (et->old_label != -1)
-            {
+            if (et->old_label != -1) {
                 labelpositions[et->old_label]->insertIntoIndex (candidates_sol);
             }
 
@@ -2130,60 +1908,58 @@ namespace pal
         delete[] tmpsol;
         delete conflicts;
 
+
         return retainedChain;
     }
+
 
     /**
      *  POPMUSIC,  chain
      */
-    long double
-    Problem::popmusic_chain ( SubPart *part)
-    {
-        long int i;
+    double Problem::popmusic_chain (SubPart *part) {
+        int i;
         //int j;
 
-        long int probSize = part->probSize;
-        long int borderSize = part->borderSize;
-        long int subSize = part->subSize;
-        long int *sub = part->sub;
-        long int *sol = part->sol;
+        int probSize   = part->probSize;
+        int borderSize = part->borderSize;
+        int subSize    = part->subSize;
+        int *sub       = part->sub;
+        int *sol       = part->sol;
 
-        long int *best_sol = new long int[subSize];
+        int *best_sol = new int[subSize];
 
-        for ( i = 0; i < subSize; i++)
-        {
+        for (i = 0;i < subSize;i++) {
             featWrap[sub[i]] = i;
             best_sol[i] = sol[i];
         }
 
-        long double initial_cost;
-        long double cur_cost = 0;
-        long double best_cost = 0;
+        double initial_cost;
+        double cur_cost = 0;
+        double best_cost = 0;
 
-        long int nbOverlap = 0;
+        int nbOverlap = 0;
 
-        long int seed;
+        int seed;
 
-        long int featOv;
+        int featOv;
 
-        long int lid;
-        long int fid;
+        int lid;
+        int fid;
 
-        long int *tabu_list = new long int[subSize];
+        int *tabu_list = new int[subSize];
 
         Chain *current_chain = NULL;
 
         //int itC;
 
-        long int it;
-        long int stop_it;
-        long int maxit;
-        long int itwimp;     // iteration without improvment
+        int it;
+        int stop_it;
+        int maxit;
+        int itwimp; // iteration without improvment
 
-        long int tenure = pal->tenure;
+        int tenure = pal->tenure;
 
-        for ( i = 0; i < subSize; i++)
-        {
+        for (i = 0;i < subSize;i++) {
             cur_cost += compute_feature_cost (part, i, sol[i], &featOv);
             nbOverlap += featOv;
         }
@@ -2195,43 +1971,36 @@ namespace pal
 
         maxit = probSize * pal->tabuMaxIt;
 
-        itwimp = probSize * pal->tabuMinIt;
-        ;
+        itwimp = probSize * pal->tabuMinIt;;
 
         stop_it = itwimp;
 
         // feature on border always are tabu
-        for ( i = 0; i < borderSize; i++)
-            tabu_list[i] = maxit;     // border always are taboo
+        for (i = 0;i < borderSize;i++)
+            tabu_list[i] = maxit;   // border always are taboo
 
-        for ( i = 0; i < probSize; i++)
-            tabu_list[i + borderSize] = -1;     // others aren't
+        for (i = 0;i < probSize;i++)
+            tabu_list[i+borderSize] = -1; // others aren't
 
-        while (it < stop_it)
-        {
+        while (it < stop_it) {
             seed = (it % probSize) + borderSize;
 
-            if ((current_chain = chain (part, seed)))
-            {
+            if ( (current_chain = chain (part, seed))) {
 
                 /* we accept a modification only if the seed is not tabu or
                  * if the nmodification will generate a new best solution */
-                if (tabu_list[seed] < it || (cur_cost + current_chain->delta) - best_cost < 0.0)
-                {
+                if (tabu_list[seed] < it || (cur_cost + current_chain->delta) - best_cost < 0.0) {
 
-                    for ( i = 0; i < current_chain->degree; i++)
-                    {
+                    for (i = 0;i < current_chain->degree;i++) {
                         fid = current_chain->feat[i];
                         lid = current_chain->label[i];
 
-                        if (sol[fid] >= 0)
-                        {
+                        if (sol[fid] >= 0) {
                             labelpositions[sol[fid]]->removeFromIndex (candidates_subsol);
                         }
                         sol[fid] = lid;
 
-                        if (sol[fid] >= 0)
-                        {
+                        if (sol[fid] >= 0) {
                             labelpositions[lid]->insertIntoIndex (candidates_subsol);
                         }
 
@@ -2241,14 +2010,13 @@ namespace pal
                     cur_cost += current_chain->delta;
 #ifdef _DEBUG_FULL_
                     std::cout << "cur->cost: " << cur_cost << std::endl;
-                    long int kov;
+                    int kov;
                     std::cout << "computed cost: " << compute_subsolution_cost (part, sol, &kov) << std::endl << std::endl;
 #endif
                     /* check if new solution is a new best solution */
-                    if (best_cost - cur_cost > EPSILON)
-                    {
+                    if (best_cost - cur_cost > EPSILON) {
                         best_cost = cur_cost;
-                        memcpy (best_sol, sol, sizeof(long int) * subSize);
+                        memcpy (best_sol, sol, sizeof (int) *subSize);
 
                         stop_it = (it + itwimp > maxit ? maxit : it + itwimp);
                     }
@@ -2258,98 +2026,99 @@ namespace pal
             it++;
         }
 
-        memcpy (sol, best_sol, sizeof(int) * subSize);
+        memcpy (sol, best_sol, sizeof (int) *subSize);
 
         /*
-         for (i=borderSize;i<subSize;i++){
-         chain =  chain (part, i);
-         if (chain){
-         if (chain->delta < 0.0){
-         best_cost += chain->delta;
-         for (j=0;j<chain->degree;j++){
-         fid = chain->feat[j];
-         lid = chain->label[j];
-         sol[fid] = lid;
-         }
-         }
+        for (i=borderSize;i<subSize;i++){
+           chain =  chain (part, i);
+           if (chain){
+              if (chain->delta < 0.0){
+                 best_cost += chain->delta;
+                 for (j=0;j<chain->degree;j++){
+                    fid = chain->feat[j];
+                    lid = chain->label[j];
+                    sol[fid] = lid;
+                 }
+              }
 
-         delete_chain(chain);
-         }
-         }
-         */
+              delete_chain(chain);
+           }
+        }
+        */
 
-        for ( i = 0; i < subSize; i++)
+        for (i = 0;i < subSize;i++)
             featWrap[sub[i]] = -1;
 
         delete[] best_sol;
         delete[] tabu_list;
 
+
         return initial_cost - best_cost;
     }
+
+
+
 
     /**
      *
      * POPMUSIC, Tabu search with  chain'
      *
      */
-    long double
-    Problem::popmusic_tabu_chain ( SubPart *part)
-    {
-        long int i;
+    double Problem::popmusic_tabu_chain (SubPart *part) {
+        int i;
 
-        long int probSize = part->probSize;
-        long int borderSize = part->borderSize;
-        long int subSize = part->subSize;
-        long int *sub = part->sub;
-        long int *sol = part->sol;
+        int probSize   = part->probSize;
+        int borderSize = part->borderSize;
+        int subSize    = part->subSize;
+        int *sub       = part->sub;
+        int *sol       = part->sol;
 
-        long int *best_sol = new long int[subSize];
+        int *best_sol = new int[subSize];
 
-        for ( i = 0; i < subSize; i++)
-        {
+        for (i = 0;i < subSize;i++) {
             featWrap[sub[i]] = i;
         }
 
-        long double initial_cost;
-        long double cur_cost = 0;
-        long double best_cost = 0;
-        long double bestChain;
+        double initial_cost;
+        double cur_cost = 0;
+        double best_cost = 0;
+        double bestChain;
 
-        long int nbOverlap = 0;
+        int nbOverlap = 0;
 
-        long int seed;
+        int seed;
 
-        long int featOv;
+        int featOv;
 
-        long int lid;
-        long int fid;
+        int lid;
+        int fid;
 
-        long int *tmpsol = new long int[subSize];
+        int *tmpsol = new int[subSize];
 
-        long int *tabu_list = new long int[subSize];
+
+        int *tabu_list = new int[subSize];
 
         Chain *retainedChain = NULL;
         Chain *current_chain = NULL;
 
-        long int itC;
+        int itC;
 
-        long int it;
-        long int stop_it;
-        long int maxit;
-        long int itwimp;
+        int it;
+        int stop_it;
+        int maxit;
+        int itwimp;
 
-        long int tenure = pal->tenure;
+        int tenure = pal->tenure;
 
-        long int itBest = -1;
+        int itBest = -1;
         //int deltaIt = 0;
 
         Triple **candidates = new Triple*[probSize];
         Triple **candidatesUnsorted = new Triple*[probSize];
 
-        LinkedList< long  int> *conflicts = new LinkedList< long  int> (intCompare);
+        LinkedList<int> *conflicts = new LinkedList<int> (intCompare);
 
-        for ( i = 0; i < subSize; i++)
-        {
+        for (i = 0;i < subSize;i++) {
             cur_cost += compute_feature_cost (part, i, sol[i], &featOv);
             nbOverlap += featOv;
         }
@@ -2361,53 +2130,50 @@ namespace pal
 
         maxit = probSize * pal->tabuMaxIt;
 
-        itwimp = probSize * pal->tabuMinIt;
-        ;
+        itwimp = probSize * pal->tabuMinIt;;
 
         stop_it = itwimp;
 
-        for ( i = 0; i < borderSize; i++)
+        for (i = 0;i < borderSize;i++)
             tabu_list[i] = maxit;
 
-        for ( i = 0; i < probSize; i++)
-        {
-            tabu_list[i + borderSize] = -1;
 
-            candidates[i] = new Triple ();
+        for (i = 0;i < probSize;i++) {
+            tabu_list[i+borderSize] = -1;
+
+            candidates[i] = new Triple();
             candidates[i]->feat_id = i + borderSize;
             candidatesUnsorted[i] = candidates[i];
 
-            candidates[i]->cost = (sol[i + borderSize] == -1 ? inactiveCost[i + borderSize] : labelpositions[sol[i + borderSize]]->cost);
+            candidates[i]->cost = (sol[i+borderSize] == -1 ? inactiveCost[i+borderSize] : labelpositions[sol[i+borderSize]]->cost);
         }
 
-        sort (( void**) candidates, probSize, decreaseCost);
+        sort ( (void**) candidates, probSize, decreaseCost);
 
-        long int validCandidateId = -1;
+        int validCandidateId = -1;
 
-        long int candidateListSize;
-        long int seedSh;
-        candidateListSize = (long int) (pal->candListSize * ( double) probSize + 0.5);
+        int candidateListSize;
+        int seedSh;
+        candidateListSize = int (pal->candListSize * (double) probSize + 0.5);
 
         if (candidateListSize > probSize)
             candidateListSize = probSize;
 
 #ifdef _DEBUG_FULL_
-        long int nbOv;
+        int nbOv;
         std::cout << std::endl << "Initial solution cost " << cur_cost << std::endl;
         std::cout << "Computed: " << compute_subsolution_cost (part, sol, &nbOv);
         std::cout << "NbOverlap: " << nbOv << std::endl;
 #endif
-        while (it < stop_it)
-        {
+        while (it < stop_it) {
             retainedChain = NULL;
-            bestChain = LDBL_MAX;
+            bestChain = DBL_MAX;
             validCandidateId = -1;
 
 #ifdef _DEBUG_FULL_
             std::cout << std::endl << std::endl << candidateListSize << std::endl;
 #endif
-            for ( itC = 0; itC < candidateListSize; itC++)
-            {
+            for (itC = 0;itC < candidateListSize;itC++) {
                 seed = candidates[itC]->feat_id;
                 seedSh = seed - borderSize;
 
@@ -2419,38 +2185,29 @@ namespace pal
 #ifdef _DEBUG_FULL_
                 std::cout << "get chain:" << current_chain << std::endl;
 #endif
-                if (current_chain)
-                {
+                if (current_chain) {
                     // seed is not taboo or chain give us a new best solution
-                    if (tabu_list[seed] < it || (cur_cost + current_chain->delta) - best_cost < 0.0)
-                    {
-                        if (!retainedChain)
-                        {
+                    if (tabu_list[seed] < it || (cur_cost + current_chain->delta) - best_cost < 0.0) {
+                        if (!retainedChain) {
                             retainedChain = current_chain;
                             bestChain = current_chain->delta;
 #ifdef _DEBUG_FULL_
                             std::cout << "New chain, delta = " << current_chain->delta << std::endl;
 #endif
-                        }
-                        else if (current_chain->delta - retainedChain->delta < EPSILON)
-                        {
+                        } else if (current_chain->delta - retainedChain->delta < EPSILON) {
                             delete_chain (retainedChain);
                             retainedChain = current_chain;
                             bestChain = current_chain->delta;
 #ifdef _DEBUG_FULL_
                             std::cout << "New best chain, delta = " << current_chain->delta << std::endl;
 #endif
-                        }
-                        else
-                        {
+                        } else {
 #ifdef _DEBUG_FULL_
                             std::cout << "chain rejected..." << std::endl;
 #endif
                             delete_chain (current_chain);
                         }
-                    }
-                    else
-                    {
+                    } else {
 #ifdef _DEBUG_FULL_
                         std::cout << "chain rejected, tabu and/or delta = " << current_chain->delta << std::endl;
 #endif
@@ -2463,17 +2220,15 @@ namespace pal
                 }
 #endif
 
-            }     // end foreach candidates
+            } // end foreach candidates
 
-            if (retainedChain /*&& retainedChain->delta <= 0*/)
-            {
+            if (retainedChain /*&& retainedChain->delta <= 0*/) {
 #ifdef _DEBUG_FULL_
                 std::cout << it << " retained chain's degree: " << retainedChain->degree;
                 std::cout << "   and delta: " << retainedChain->delta << std::endl;
 #endif
 
-                for ( i = 0; i < retainedChain->degree; i++)
-                {
+                for (i = 0;i < retainedChain->degree;i++) {
                     fid = retainedChain->feat[i];
                     lid = retainedChain->label[i];
 #ifdef _DEBUG_FULL_
@@ -2500,7 +2255,7 @@ namespace pal
                         std::cout << "label[lid]->cost: " << labelpositions[lid]->cost << std::endl;
                     }
 #endif
-                    candidatesUnsorted[fid - borderSize]->cost = (lid == -1 ? inactiveCost[sub[fid]] : labelpositions[lid]->cost);
+                    candidatesUnsorted[fid-borderSize]->cost = (lid == -1 ? inactiveCost[sub[fid]] : labelpositions[lid]->cost);
 
                 }
 
@@ -2519,19 +2274,19 @@ namespace pal
 
                 delete_chain (retainedChain);
 
-                if (best_cost - cur_cost > EPSILON)
-                {
+                if (best_cost - cur_cost > EPSILON) {
 #ifdef _DEBUG_FULL_
                     std::cout << "new_best" << std::endl;
 #endif
                     best_cost = cur_cost;
-                    memcpy (best_sol, sol, sizeof(long int) * subSize);
+                    memcpy (best_sol, sol, sizeof (int) *subSize);
 
                     itBest = it;
 
                     stop_it = (it + itwimp > maxit ? maxit : it + itwimp);
                 }
-                sort (( void**) candidates, probSize, decreaseCost);
+                sort ( (void**) candidates, probSize, decreaseCost);
+
 
             }
 #ifdef _DEBUG_FULL_
@@ -2542,116 +2297,101 @@ namespace pal
             it++;
         }
 
-        memcpy (sol, best_sol, sizeof(long int) * subSize);
+        memcpy (sol, best_sol, sizeof (int) *subSize);
 
         delete conflicts;
 
-        for ( i = 0; i < probSize; i++)
+        for (i = 0;i < probSize;i++)
             delete candidates[i];
 
         delete[] candidates;
         delete[] candidatesUnsorted;
 
-        for ( i = 0; i < subSize; i++)
+        for (i = 0;i < subSize;i++)
             featWrap[sub[i]] = -1;
 
         delete[] best_sol;
         delete[] tmpsol;
         delete[] tabu_list;
 
+
         return initial_cost - best_cost;
     }
 
-    bool
-    checkCallback ( LabelPosition *lp,
-                    void *ctx)
-    {
-        LinkedList< LabelPosition*> *list = ( LinkedList< LabelPosition*>*) ctx;
+    bool checkCallback (LabelPosition *lp, void *ctx) {
+        LinkedList<LabelPosition*> *list = (LinkedList<LabelPosition*>*) ctx;
         list->push_back (lp);
 
         return true;
     }
 
-    void
-    Problem::check_solution ()
-    {
+
+    void Problem::check_solution() {
 
         LabelPosition *lp;
-        long int *solution = new long int[nbft];
+        int *solution = new int[nbft];
 
-        long double amin[2];
-        long double amax[2];
+        double amin[2];
+        double amax[2];
 
         amin[0] = bbox[0];
         amin[1] = bbox[1];
         amax[0] = bbox[2];
         amax[1] = bbox[3];
 
-        LinkedList< LabelPosition*> *list = new LinkedList< LabelPosition*> (ptrLPosCompare);
+        LinkedList<LabelPosition*> *list = new LinkedList<LabelPosition*> (ptrLPosCompare);
 
-        candidates_sol->Search (amin, amax, checkCallback, ( void*) list);
+        candidates_sol->Search (amin, amax, checkCallback, (void*) list);
 
         std::cerr << "Check Solution" << std::endl;
 
-        long int i;
-        long int nbActive = 0;
-        for ( i = 0; i < nbft; i++)
-        {
+        int i;
+        int nbActive = 0;
+        for (i = 0;i < nbft;i++) {
             solution[i] = -1;
             if (sol->s[i] >= 0)
                 nbActive++;
         }
 
-        if (list->size () != nbActive)
-        {
+        if (list->size() != nbActive) {
             std::cerr << "Error in solution !!!!" << std::endl;
         }
 
-        while (list->size () > 0)
-        {
-            lp = list->pop_front ();
-            if (solution[lp->probFeat] >= 0)
-            {
-                std::cerr << "Doublon : " << lp->probFeat << " " << solution[lp->probFeat] << "<->" << lp->id << std::endl;
+        while (list->size() > 0) {
+            lp = list->pop_front();
+            if (solution[lp->probFeat] >= 0) {
+                std::cerr << "Doublon : " << lp->probFeat << " "
+                          << solution[lp->probFeat]  << "<->"
+                          << lp->id << std::endl;
             }
 
             solution[lp->probFeat] = lp->id;
             //std::cout << "lp->id:" << lp->id <<;
         }
 
-        for ( i = 0; i < nbft; i++)
-        {
-            if (solution[i] != sol->s[i])
-            {
+        for (i = 0;i < nbft;i++) {
+            if (solution[i] != sol->s[i]) {
                 std::cerr << "Feat " << i << " : " << solution[i] << "<-->" << sol->s[i] << std::endl;
             }
         }
     }
 
-    typedef struct _nokContext
-    {
-            LabelPosition *lp;
-            bool *ok;
-            long int *wrap;
+    typedef struct _nokContext {
+        LabelPosition *lp;
+        bool *ok;
+        int *wrap;
     } NokContext;
 
-    bool
-    nokCallback ( LabelPosition *lp,
-                  void *context)
-    {
+    bool nokCallback (LabelPosition *lp, void *context) {
 
-        LabelPosition *lp2 = (( NokContext*) context)->lp;
-        bool *ok = (( NokContext*) context)->ok;
-        long int *wrap = (( NokContext*) context)->wrap;
+        LabelPosition *lp2 = ( (NokContext*) context)->lp;
+        bool *ok = ( (NokContext*) context)->ok;
+        int *wrap = ( (NokContext*) context)->wrap;
 
-        if (lp2->isInConflict (lp))
-        {
-            if (wrap)
-            {
+        if (lp2->isInConflict (lp)) {
+            if (wrap) {
                 ok[wrap[lp->probFeat]] = false;
-            }
-            else
-            {
+            } else {
                 ok[lp->probFeat] = false;
             }
         }
@@ -2660,35 +2400,35 @@ namespace pal
     }
 
 #if 0
-    // tabu,
+// tabu,
     void Problem::chain_search() {
-        long int i;
+        int i;
 
-        long int *best_sol = new long int[nbft];
+        int *best_sol = new int[nbft];
 
-        long double initial_cost;
-        long double cur_cost = 0;
-        long double best_cost = 0;
+        double initial_cost;
+        double cur_cost = 0;
+        double best_cost = 0;
 
-        long int nbOverlap = 0;
+        int nbOverlap = 0;
 
-        long int seed;
+        int seed;
 
-        long int featOv;
+        int featOv;
 
-        long int lid;
-        long int fid;
+        int lid;
+        int fid;
 
-        long int *tabu_list = new long int[nbft];
+        int *tabu_list = new int[nbft];
 
         Chain *current_chain = NULL;
 
-        long int it;
-        long int stop_it;
-        long int maxit;
-        long int itwimp; // iteration without improvment
+        int it;
+        int stop_it;
+        int maxit;
+        int itwimp; // iteration without improvment
 
-        long int tenure = pal->tenure;
+        int tenure = pal->tenure;
         //tenure = 0;
 
 #ifdef _VERBOSE_
@@ -2708,7 +2448,7 @@ namespace pal
 
 #ifdef _VERBOSE_
         std::cerr << "\t" << sol->cost << "\t" << nbActive << "\t" << (double) nbActive / (double) nbft;
-        std::cout << " (solution cost: " << sol->cost << ", nbDisplayed: " << nbActive  << "(" << long double (nbActive) / nbft << "%)" << std::endl;
+        std::cout << " (solution cost: " << sol->cost << ", nbDisplayed: " << nbActive  << "(" << double (nbActive) / nbft << "%)" << std::endl;
 #endif
 
         cur_cost = sol->cost;
@@ -2717,7 +2457,7 @@ namespace pal
 
         best_cost = cur_cost;
 
-        memcpy (best_sol, sol->s, sizeof (long int) *nbft);
+        memcpy (best_sol, sol->s, sizeof (int) *nbft);
 
         it = 0;
 
@@ -2769,7 +2509,7 @@ namespace pal
                         //std::cout << "New best : " << cur_cost <<" <--> " << best_cost << std::endl;
                         //std::cout << "New best" << std::endl;
                         best_cost = cur_cost;
-                        memcpy (best_sol, sol->s, sizeof (long int) *nbft);
+                        memcpy (best_sol, sol->s, sizeof (int) *nbft);
 
                         stop_it = (it + itwimp > maxit ? maxit : it + itwimp);
                     }
@@ -2803,20 +2543,18 @@ namespace pal
     }
 #endif
 
-    void
-    Problem::chain_search ()
-    {
+    void Problem::chain_search() {
 
         if (nbft == 0)
             return;
 
-        long int i;
+        int i;
 
-        long int seed;
+        int seed;
         bool *ok = new bool[nbft];
 
-        long int fid;
-        long int lid;
+        int fid;
+        int lid;
 
 #ifdef _VERBOSE_
         clock_t start_time = clock();
@@ -2824,11 +2562,11 @@ namespace pal
         clock_t search_time;
 #endif
 
-        long int popit = 0;
+        int popit = 0;
 
-        long int c;
-        long double amin[2];
-        long double amax[2];
+        int c;
+        double amin[2];
+        double amax[2];
 
         NokContext context;
 
@@ -2839,13 +2577,12 @@ namespace pal
 
         featWrap = NULL;
 
-        for ( i = 0; i < nbft; i++)
-        {
+        for (i = 0;i < nbft;i++) {
             ok[i] = false;
         }
 
         //initialization();
-        init_sol_falp ();
+        init_sol_falp();
 
         //check_solution();
 
@@ -2853,11 +2590,12 @@ namespace pal
         std::cout << "   Compute initial solution: " << (double) ( (init_sol_time = clock()) - start_time) / (double) CLOCKS_PER_SEC;
 #endif
 
-        solution_cost ();
+        solution_cost();
+
 
 #ifdef _VERBOSE_
         std::cerr << "\t" << sol->cost << "\t" << nbActive << "\t" << (double) nbActive / (double) nbft;
-        std::cout << " (solution cost: " << sol->cost << ", nbDisplayed: " << nbActive  << "(" << (long double )(nbActive) / nbft << "%)" << std::endl;
+        std::cout << " (solution cost: " << sol->cost << ", nbDisplayed: " << nbActive  << "(" << double (nbActive) / nbft << "%)" << std::endl;
 #endif
         long int iter = 0;
         long int vueltas=0;
@@ -2867,12 +2605,12 @@ namespace pal
             vueltas++;
             //check_solution();
 
-            for ( seed = (iter + 1) % nbft; ok[seed] && seed != iter; seed = (seed + 1) % nbft)
-                ;
+            for (seed = (iter + 1) % nbft;
+                    ok[seed] && seed != iter;
+                    seed = (seed + 1) % nbft);
 
             // All seeds are OK
-            if (seed == iter)
-            {
+            if (seed == iter) {
                 break;
             }
 
@@ -2884,14 +2622,12 @@ namespace pal
 
             retainedChain = chain (seed);
 
-            if (retainedChain && retainedChain->delta < - EPSILON)
-            {
+            if (retainedChain && retainedChain->delta < - EPSILON) {
 #ifdef _DEBUG_FULL_
                 std::cout << "chain's degree & delta : " << retainedChain->degree << "     " << retainedChain->delta << std::endl;
 #endif
                 // apply modification
-                for ( i = 0; i < retainedChain->degree; i++)
-                {
+                for (i = 0;i < retainedChain->degree;i++) {
                     fid = retainedChain->feat[i];
                     lid = retainedChain->label[i];
 #ifdef _DEBUG_FULL_
@@ -2905,17 +2641,16 @@ namespace pal
                         std::cout << "new cost : " << labelpositions[lid]->cost << std::endl;
 #endif
 
-                    if (sol->s[fid] >= 0)
-                    {
+                    if (sol->s[fid] >= 0) {
                         LabelPosition *old = labelpositions[sol->s[fid]];
                         old->removeFromIndex (candidates_sol);
 
-                        amin[0] = LDBL_MAX;
-                        amax[0] = -LDBL_MAX;
-                        amin[1] = LDBL_MAX;
-                        amax[1] = -LDBL_MAX;
-                        for ( c = 0; c < 4; c++)
-                        {
+
+                        amin[0] = DBL_MAX;
+                        amax[0] = -DBL_MAX;
+                        amin[1] = DBL_MAX;
+                        amax[1] = -DBL_MAX;
+                        for (c = 0;c < 4;c++) {
                             if (old->x[c] < amin[0])
                                 amin[0] = old->x[c];
                             if (old->x[c] > amax[0])
@@ -2932,8 +2667,7 @@ namespace pal
 
                     sol->s[fid] = lid;
 
-                    if (sol->s[fid] >= 0)
-                    {
+                    if (sol->s[fid] >= 0) {
                         labelpositions[lid]->insertIntoIndex (candidates_sol);
                     }
 
@@ -2945,9 +2679,7 @@ namespace pal
                 solution_cost ();
                 std::cout << "chain iteration " << popit << ": " << sol->cost << ", " << retainedChain->delta << ", " << retainedChain->degree << std::endl;
 #endif
-            }
-            else
-            {
+            } else {
                 // no chain or the one is not god enough
                 ok[seed] = true;
             }
@@ -2967,14 +2699,7 @@ namespace pal
         sol->cost = 0;
 #endif
 
-        solution_cost ();
-
-#ifdef _INFO_
-        if(vueltas>=maxVueltas){
-            std::cout << "LIMIT vueltas 2  " << vueltas<<" ### Cur_cost:  " << sol->cost << std::endl;
-        }
-#endif
-
+        solution_cost();
 
 #ifdef _VERBOSE_
         std::cout << "   Improved solution: " << (double) ( (search_time = clock()) - start_time) / (double) CLOCKS_PER_SEC << " (solution cost: " << sol->cost << ", nbDisplayed: " << nbActive << " (" << (double) nbActive / (double) nbft << "%)" << std::endl;
@@ -2989,41 +2714,41 @@ namespace pal
     }
 
 #if 0
-    long double Problem::popmusic_chain (SubPart *part) {
-        long int i;
+    double Problem::popmusic_chain (SubPart *part) {
+        int i;
 
-        long int probSize   = part->probSize;
-        long int borderSize = part->borderSize;
-        long int subSize    = part->subSize;
-        long int *sub       = part->sub;
-        long int *sol       = part->sol;
+        int probSize   = part->probSize;
+        int borderSize = part->borderSize;
+        int subSize    = part->subSize;
+        int *sub       = part->sub;
+        int *sol       = part->sol;
 
-        long int *best_sol = new long int[subSize];
+        int *best_sol = new int[subSize];
 
         for (i = 0;i < subSize;i++) {
             featWrap[sub[i]] = i;
             best_sol[i] = sol[i];
         }
 
-        long double initial_cost;
-        long double cur_cost = 0;
+        double initial_cost;
+        double cur_cost = 0;
 
-        long int nbOverlap = 0;
+        int nbOverlap = 0;
 
-        long int seed;
+        int seed;
 
-        long int featOv;
+        int featOv;
 
-        long int lid;
-        long int fid;
+        int lid;
+        int fid;
 
         bool *ok = new bool[subSize];
 
         Chain *retainedChain = NULL;
 
-        long int c;
-        long double amin[2];
-        long double amax[2];
+        int c;
+        double amin[2];
+        double amax[2];
 
         NokContext context;
         context.ok = ok;
@@ -3032,7 +2757,7 @@ namespace pal
 
         //int itC;
 
-        long int iter = 0, it = 0;
+        int iter = 0, it = 0;
 
         for (i = 0;i < subSize;i++) {
             cur_cost += compute_feature_cost (part, i, sol[i], &featOv);
@@ -3087,10 +2812,10 @@ namespace pal
                         LabelPosition *old = labelpositions[sol[fid]];
                         old->removeFromIndex (candidates_subsol);
 
-                        amin[0] = LDBL_MAX;
-                        amax[0] = -LDBL_MAX;
-                        amin[1] = LDBL_MAX;
-                        amax[1] = -LDBL_MAX;
+                        amin[0] = DBL_MAX;
+                        amax[0] = -DBL_MAX;
+                        amin[1] = DBL_MAX;
+                        amax[1] = -DBL_MAX;
                         for (c = 0;c < 4;c++) {
                             if (old->x[c] < amin[0])
                                 amin[0] = old->x[c];
@@ -3117,7 +2842,7 @@ namespace pal
                 cur_cost += retainedChain->delta;
 #ifdef _DEBUG_FULL_
                 std::cout << "    cur->cost: " << cur_cost << std::endl;
-                long int kov;
+                int kov;
                 std::cout << "    computed cost: " << compute_subsolution_cost (part, sol, &kov) << std::endl << std::endl;
 #endif
             } else {
@@ -3138,20 +2863,18 @@ namespace pal
 
         return initial_cost - cur_cost;
     }
-    //#undef _DEBUG_FULL_
+//#undef _DEBUG_FULL_
 #endif
 
-    std::list< Label*>*
-    Problem::getSolution ( bool returnInactive)
-    {
+    std::list<Label*> * Problem::getSolution (bool returnInactive) {
 
-        long int i;
-        std::list< Label*> *solList = new std::list< Label*> ();
+        int i;
+        std::list<Label*> *solList = new std::list<Label*>();
 
         if (nbft == 0)
             return solList;
 
-        for ( i = 0; i < nbft; i++)
+        for (i = 0;i < nbft;i++)
             if (sol->s[i] != -1)
                 solList->push_back (labelpositions[sol->s[i]]->toLabel (true));
             else if (returnInactive)
@@ -3160,23 +2883,20 @@ namespace pal
         return solList;
     }
 
-    PalStat*
-    Problem::getStats ()
-    {
-        long int i, j;
+    PalStat * Problem::getStats() {
+        int i, j;
 
-        PalStat *stats = new PalStat ();
+        PalStat *stats = new PalStat();
 
         stats->nbObjects = nbft;
         stats->nbLabelledObjects = 0;
 
         stats->nbLayers = nbLabelledLayers;
         stats->layersName = new char*[stats->nbLayers];
-        stats->layersNbObjects = new long int[stats->nbLayers];
-        stats->layersNbLabelledObjects = new long int[stats->nbLayers];
+        stats->layersNbObjects = new int[stats->nbLayers];
+        stats->layersNbLabelledObjects = new int[stats->nbLayers];
 
-        for ( i = 0; i < stats->nbLayers; i++)
-        {
+        for (i = 0;i < stats->nbLayers;i++) {
             stats->layersName[i] = new char[strlen (labelledLayersName[i]) + 1];
             strcpy (stats->layersName[i], labelledLayersName[i]);
             stats->layersNbObjects[i] = 0;
@@ -3184,30 +2904,23 @@ namespace pal
         }
 
         char *lyrName;
-        long int k;
-        for ( i = 0; i < nbft; i++)
-        {
+        int k;
+        for (i = 0;i < nbft;i++) {
             lyrName = labelpositions[featStartId[i]]->feature->layer->name;
             k = -1;
-            for ( j = 0; j < stats->nbLayers; j++)
-            {
-                if (strcmp (lyrName, stats->layersName[j]) == 0)
-                {
+            for (j = 0;j < stats->nbLayers;j++) {
+                if (strcmp (lyrName, stats->layersName[j]) == 0) {
                     k = j;
                     break;
                 }
             }
-            if (k != -1)
-            {
+            if (k != -1) {
                 stats->layersNbObjects[k]++;
-                if (sol->s[i] >= 0)
-                {
+                if (sol->s[i] >= 0) {
                     stats->layersNbLabelledObjects[k]++;
                     stats->nbLabelledObjects++;
                 }
-            }
-            else
-            {
+            } else {
                 std::cerr << "Error unknown layers while computing stats: " << lyrName << std::endl;
             }
         }
@@ -3215,9 +2928,7 @@ namespace pal
         return stats;
     }
 
-    void
-    Problem::post_optimization ()
-    {
+    void Problem::post_optimization() {
 #if 0
         /*
          *   this->sol                 => s[nbFeature] s[i] = quel label pour la feat. i
@@ -3240,8 +2951,8 @@ namespace pal
         Feature *feature;
         LabelPosition *lp;
 
-        long int i, j;
-        long double xrm, yrm;
+        int i, j;
+        double xrm, yrm;
 
         std::ofstream solution ("solution.raw");
         solution << "GeomType ; nbPoints ;  label length ; label height ; down-left X ; down-left Y ; rotation (rad) ; points list" << std::endl;
@@ -3266,7 +2977,7 @@ namespace pal
 
             if (sol->s[i] >= 0) {
                 solution << feature->type << ";" << feature->nbPoints << ";" << xrm << ";" << yrm
-                        << ";" << lp->x[0] << ";" << lp->y[0] << ";" << lp->alpha << ";";
+                << ";" << lp->x[0] << ";" << lp->y[0] << ";" << lp->alpha << ";";
             } else {
                 solution << feature->type << ";" << feature->nbPoints << ";0;0;0;0;0;";
             }
@@ -3283,9 +2994,7 @@ namespace pal
 #endif
     }
 
-    void
-    Problem::solution_cost ()
-    {
+    void Problem::solution_cost() {
 
 #ifdef _DEBUG_FULL_
         std::cout << "Global solution evaluation" << std::endl;
@@ -3294,39 +3003,34 @@ namespace pal
         sol->cost = 0.0;
         nbActive = 0;
 
-        long int nbOv;
+        int nbOv;
 
-        long int c;
-        long int i;
+        int c;
+        int i;
 
         CountContext context;
         context.inactiveCost = inactiveCost;
         context.nbOv = &nbOv;
         context.cost = &sol->cost;
-        long double amin[2];
-        long double amax[2];
+        double amin[2];
+        double amax[2];
         LabelPosition *lp;
 
-        long int nbHidden = 0;
+        int nbHidden = 0;
 
-        for ( i = 0; i < nbft; i++)
-        {
-            if (sol->s[i] == -1)
-            {
+        for (i = 0;i < nbft;i++) {
+            if (sol->s[i] == -1) {
                 sol->cost += inactiveCost[i];
                 nbHidden++;
-            }
-            else
-            {
+            } else {
                 nbOv = 0;
                 lp = labelpositions[sol->s[i]];
 
-                amin[0] = LDBL_MAX;
-                amax[0] = -LDBL_MAX;
-                amin[1] = LDBL_MAX;
-                amax[1] = -LDBL_MAX;
-                for ( c = 0; c < 4; c++)
-                {
+                amin[0] = DBL_MAX;
+                amax[0] = -DBL_MAX;
+                amin[1] = DBL_MAX;
+                amax[1] = -DBL_MAX;
+                for (c = 0;c < 4;c++) {
                     if (lp->x[c] < amin[0])
                         amin[0] = lp->x[c];
                     if (lp->x[c] > amax[0])
@@ -3350,18 +3054,19 @@ namespace pal
         if (nbActive + nbHidden != nbft) {
             std::cout << "Conflicts in solution: " << nbHidden / 2 << std::endl;
         }
-        std::cout << "nbActive and free: " << nbActive << " (" << long double (nbActive) / long double (nbft) << " %)" << std::endl;
+        std::cout << "nbActive and free: " << nbActive << " (" << double (nbActive) / double (nbft) << " %)" << std::endl;
         std::cout << "solution cost:" << sol->cost << std::endl;
 #endif
     }
 
+
 #ifdef _EXPORT_MAP_
     void Problem::drawLabels (std::ofstream &svgmap) {
-        long int i;
+        int i;
 
         svgmap << "<g inkscape:label=\"labels\"" << std::endl
-                <<     "inkscape:groupmode=\"layer\"" << std::endl
-                <<     "id=\"label_layer\">" << std::endl << std::endl;
+        <<     "inkscape:groupmode=\"layer\"" << std::endl
+        <<     "id=\"label_layer\">" << std::endl << std::endl;
 
         for (i = 0;i < nbft;i++) {
             if (sol->s[i] >= 0) {
@@ -3374,4 +3079,4 @@ namespace pal
     }
 #endif
 
-}     // namespace
+} // namespace

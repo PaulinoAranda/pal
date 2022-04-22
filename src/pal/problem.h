@@ -34,204 +34,178 @@
 #include <pal/pal.h>
 #include "rtree.hpp"
 
-namespace pal
-{
+namespace pal {
 
     class LabelPosition;
     class Label;
 
-    class Sol
-    {
-        public:
-            long int *s;
-            long double cost;
+    class Sol {
+    public:
+        int *s;
+        double cost;
     };
 
-    typedef struct _subpart
-    {
-            /**
-             * # of features in problem
-             */
-            long int probSize;
+    typedef struct _subpart {
+        /**
+         * # of features in problem
+         */
+        int probSize;
 
-            /**
-             * # of features bounding the problem
-             */
-            long int borderSize;
+        /**
+         * # of features bounding the problem
+         */
+        int borderSize;
 
-            /**
-             *  total # features (prob + border)
-             */
-            long int subSize;
+        /**
+         *  total # features (prob + border)
+         */
+        int subSize;
 
-            /**
-             * wrap bw sub feat and main feat
-             */
-            long int *sub;
-            /**
-             * sub solution
-             */
-            long int *sol;
-            /**
-             * first feat in sub part
-             */
-            long int seed;
+        /**
+         * wrap bw sub feat and main feat
+         */
+        int *sub;
+        /**
+         * sub solution
+         */
+        int *sol;
+        /**
+         * first feat in sub part
+         */
+        int seed;
     } SubPart;
 
-    typedef struct _chain
-    {
-            long int degree;
-            long double delta;
-            long int *feat;
-            long int *label;
+    typedef struct _chain {
+        int degree;
+        double delta;
+        int *feat;
+        int *label;
     } Chain;
 
     /**
      * \brief Represent a problem
      */
-    class Problem
-    {
+    class Problem {
 
-            friend class Pal;
+        friend class Pal;
 
-        private:
+    private:
 
-            /**
-             * How many layers are lebelled ?
-             */
-            long int nbLabelledLayers;
+        /**
+         * How many layers are lebelled ?
+         */
+        int nbLabelledLayers;
 
-            /**
-             * Names of the labelled layers
-             */
-            char **labelledLayersName;
+        /**
+         * Names of the labelled layers
+         */
+        char **labelledLayersName;
 
-            /**
-             * # active candidates (remaining after reduce())
-             */
-            long int nblp;
-            /**
-             * # candidates (all, including)
-             */
-            long int all_nblp;
+        /**
+         * # active candidates (remaining after reduce())
+         */
+        int nblp;
+        /**
+         * # candidates (all, including)
+         */
+        int all_nblp;
 
-            /**
-             * # feature to label
-             */
-            long int nbft;
+        /**
+         * # feature to label
+         */
+        int nbft;
 
-            /**
-             * if true, special value -1 is prohibited
-             */
-            bool displayAll;
 
-            /**
-             * Map extent (xmin, ymin, xmax, ymax)
-             */
-            long double bbox[4];
+        /**
+         * if true, special value -1 is prohibited
+         */
+        bool displayAll;
 
-            /**
-             * map scale is 1:scale
-             */
-            long double scale;
+        /**
+         * Map extent (xmin, ymin, xmax, ymax)
+         */
+        double bbox[4];
 
-            long double *labelPositionCost;
-            long int *nbOlap;
+        /**
+         * map scale is 1:scale
+         */
+        double scale;
 
-            LabelPosition **labelpositions;
+        double *labelPositionCost;
+        int *nbOlap;
 
-            RTree< LabelPosition*, long  double, 2, long  double> *candidates;     // index all candidates
-            RTree< LabelPosition*, long  double, 2, long  double> *candidates_sol;     // index active candidates
-            RTree< LabelPosition*, long  double, 2, long  double> *candidates_subsol;     // idem for subparts
+        LabelPosition **labelpositions;
 
-            //int *feat;        // [nblp]
-            long int *featStartId;     // [nbft]
-            long int *featNbLp;     // [nbft]
-            long double *inactiveCost;     //
+        RTree<LabelPosition*, double, 2, double> *candidates;  // index all candidates
+        RTree<LabelPosition*, double, 2, double> *candidates_sol; // index active candidates
+        RTree<LabelPosition*, double, 2, double> *candidates_subsol; // idem for subparts
 
-            Sol *sol;         // [nbft]
-            long int nbActive;
+        //int *feat;        // [nblp]
+        int *featStartId; // [nbft]
+        int *featNbLp;    // [nbft]
+        double *inactiveCost; //
 
-            long int nbOverlap;
+        Sol *sol;         // [nbft]
+        int nbActive;
 
-            long int *featWrap;
+        int nbOverlap;
 
-            Chain*
-            chain ( SubPart *part,
-                    long int seed);
+        int *featWrap;
 
-            Chain*
-            chain ( long int seed);
+        Chain *chain (SubPart *part, int seed);
 
-            Pal *pal;
+        Chain *chain (int seed);
 
-            void
-            solution_cost ();
-            void
-            check_solution ();
+        Pal *pal;
 
-            Problem ();
+        void solution_cost();
+        void check_solution();
 
-            //Problem(char *lorena_file, bool displayAll);
+        Problem();
 
-            ~Problem ();
+        //Problem(char *lorena_file, bool displayAll);
 
-            void
-            reduce ();
+        ~Problem();
 
-            void
-            post_optimization ();
 
-            /**
-             * \brief popmusic framework
-             */
-            void
-            popmusic ();
+        void reduce();
 
-            /**
-             * \brief Test with very-large scale neighborhood
-             */
-            void
-            chain_search ();
 
-            std::list< Label*>*
-            getSolution ( bool returnInactive);
+        void post_optimization();
 
-            PalStat*
-            getStats ();
 
-            /* usefull only for postscript post-conversion*/
-            //void toFile(char *label_file);
-            SubPart*
-            subPart ( long int r,
-                      long int featseed,
-                      long int *isIn);
 
-            void
-            initialization ();
+        /**
+         * \brief popmusic framework
+         */
+        void popmusic();
 
-            long double
-            compute_feature_cost ( SubPart *part,
-                                   long int feat_id,
-                                   long int label_id,
-                                   long int *nbOverlap);
-            long double
-            compute_subsolution_cost ( SubPart *part,
-                                       long int *s,
-                                       long int *nbOverlap);
+        /**
+         * \brief Test with very-large scale neighborhood
+         */
+        void chain_search();
 
-            long double
-            popmusic_chain ( SubPart *part);
+        std::list<Label*> * getSolution (bool returnInactive);
 
-            long double
-            popmusic_tabu ( SubPart *part);
-            long double
-            popmusic_tabu_chain ( SubPart *part);
+        PalStat * getStats();
 
-            void
-            init_sol_empty ();
-            void
-            init_sol_falp ();
+        /* usefull only for postscript post-conversion*/
+        //void toFile(char *label_file);
+
+        SubPart *subPart (int r, int featseed, int *isIn);
+
+        void initialization();
+
+        double compute_feature_cost (SubPart *part, int feat_id, int label_id, int *nbOverlap);
+        double compute_subsolution_cost (SubPart *part, int *s, int * nbOverlap);
+
+        double popmusic_chain (SubPart *part);
+
+        double popmusic_tabu (SubPart *part);
+        double popmusic_tabu_chain (SubPart *part);
+
+        void init_sol_empty();
+        void init_sol_falp();
 
 #ifdef _EXPORT_MAP_
         void drawLabels (std::ofstream &svgmap);
@@ -239,6 +213,6 @@ namespace pal
 
     };
 
-}     // namespace
+} // namespace
 
 #endif

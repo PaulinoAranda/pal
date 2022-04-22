@@ -35,19 +35,15 @@
 #include <pal/pal.h>
 #include <pal/palgeometry.h>
 
-namespace pal
-{
+
+namespace pal {
 //#include <pal/LinkedList.hpp>
 
-    template< class Type>
-        class LinkedList;
-    template< class Type>
-        class Cell;
-    template< typename Data>
-        class HashTable;
+    template <class Type> class LinkedList;
+    template <class Type> class Cell;
+    template <typename Data> class HashTable;
 
-    template< class DATATYPE, class ELEMTYPE, long int NUMDIMS, class ELEMTYPEREAL, long int TMAXNODES, long int TMINNODES>
-        class RTree;
+    template<class DATATYPE, class ELEMTYPE, int NUMDIMS, class ELEMTYPEREAL, int TMAXNODES, int TMINNODES> class RTree;
 
     class Feature;
     class Pal;
@@ -62,344 +58,283 @@ namespace pal
      *
      *  \author Maxence Laurent <maxence _dot_ laurent _at_ heig-vd _dot_ ch>
      */
-    class Layer
-    {
-            friend class Pal;
-            friend class Feature;
+    class Layer {
+        friend class Pal;
+        friend class Feature;
 
-            friend class Problem;
+        friend class Problem;
 
-            friend class LabelPosition;
-            friend bool
-            extractFeatCallback ( Feature *ft_ptr,
-                                  void *ctx);
-            friend bool
-            pruneLabelPositionCallback ( LabelPosition *lp,
-                                         void *ctx);
-            friend bool
-            obstacleCallback ( PointSet *feat,
-                               void *ctx);
-            friend void
-            toSVGPath ( long int nbPoints,
-                        long double *x,
-                        long double *y,
-                        long int dpi,
-                        Layer *layer,
-                        long int type,
-                        char *uid,
-                        std::ostream &out,
-                        long double scale,
-                        Units unit,
-                        long int xmin,
-                        long int xmax,
-                        long int ymax,
-                        bool exportInfo,
-                        char *color);
-            friend bool
-            filteringCallback ( PointSet*,
-                                void*);
+        friend class LabelPosition;
+        friend bool extractFeatCallback (Feature *ft_ptr, void *ctx);
+        friend bool pruneLabelPositionCallback (LabelPosition *lp, void *ctx);
+        friend bool obstacleCallback (PointSet *feat, void *ctx);
+        friend void toSVGPath (int nbPoints, double *x, double *y, int dpi, Layer *layer, int type, char *uid, std::ostream &out, double scale, Units unit, int xmin, int xmax, int ymax, bool exportInfo, char *color);
+        friend bool filteringCallback (PointSet*, void*);
 
-        protected:
-            char *name; /* unique */
+    protected:
+        char *name; /* unique */
 
-            LinkedList< Feature*> *features;
 
-            Pal *pal;
+        LinkedList<Feature*> *features;
 
-            long double defaultPriority;
+        Pal *pal;
 
-            bool obstacle;
-            bool active;
-            bool toLabel;
+        double defaultPriority;
 
-            Units label_unit;
+        bool obstacle;
+        bool active;
+        bool toLabel;
 
-            long double min_scale;
-            long double max_scale;
+        Units label_unit;
 
-            Arrangement arrangement;
+        double min_scale;
+        double max_scale;
 
-            // indexes (spatial and id)
-            RTree< Feature*, long  double, 2, long  double, 8, 4> *rtree;
-            HashTable< Cell< Feature*>*> *hashtable;
+        Arrangement arrangement;
 
-            SimpleMutex *modMutex;
+        // indexes (spatial and id)
+        RTree<Feature*, double, 2, double, 8, 4> *rtree;
+        HashTable<Cell<Feature*>*> *hashtable;
 
-            /**
-             * \brief Create a new layer
-             *
-             * @param lyrName layer's name
-             * @param min_scale bellow this scale: no labeling
-             * @param max_scale above this scale: no labeling
-             * @param arrangement Arrangement mode : how to place candidates
-             * @param label_unit Unit for labels sizes
-             * @param defaultPriority layer's prioriry (0 is the best, 1 the worst)
-             * @param obstacle 'true' will discourage other label to be placed above features of this layer
-             * @param active is the layer is active (currently displayed)
-             * @param toLabel the layer will be labeled whether toLablel is true
-             * @param pal pointer to the pal object
-             *
-             */
-            Layer ( const char *lyrName,
-                    long double min_scale,
-                    long double max_scale,
-                    Arrangement arrangement,
-                    Units label_unit,
-                    long double defaultPriority,
-                    bool obstacle,
-                    bool active,
-                    bool toLabel,
-                    Pal *pal);
+        SimpleMutex *modMutex;
 
-            /**
-             * \brief Delete the layer
-             */
-            virtual
-            ~Layer ();
+        /**
+         * \brief Create a new layer
+         *
+         * @param lyrName layer's name
+         * @param min_scale bellow this scale: no labeling
+         * @param max_scale above this scale: no labeling
+         * @param arrangement Arrangement mode : how to place candidates
+         * @param label_unit Unit for labels sizes
+         * @param defaultPriority layer's prioriry (0 is the best, 1 the worst)
+         * @param obstacle 'true' will discourage other label to be placed above features of this layer
+         * @param active is the layer is active (currently displayed)
+         * @param toLabel the layer will be labeled whether toLablel is true
+         * @param pal pointer to the pal object
+         *
+         */
+        Layer (const char *lyrName, double min_scale, double max_scale, Arrangement arrangement, Units label_unit, double defaultPriority, bool obstacle, bool active, bool toLabel, Pal *pal);
 
-            /**
-             * \brief look up for a feature in layer and return an iterator pointing to the feature
-             * @param geom_id unique identifier of the feature
-             * @return an iterator pointng to the feature or NULL if the feature does not exists
-             */
-            Cell< Feature*>*
-            getFeatureIt ( const char *geom_id);
+        /**
+         * \brief Delete the layer
+         */
+        virtual ~Layer();
 
-            /**
-             * \brief check if the scal is in the scale range min_scale -> max_scale
-             * @param scale the scale to check
-             */
-            bool
-            isScaleValid ( long double scale);
+        /**
+         * \brief look up for a feature in layer and return an iterator pointing to the feature
+         * @param geom_id unique identifier of the feature
+         * @return an iterator pointng to the feature or NULL if the feature does not exists
+         */
+        Cell<Feature*> *getFeatureIt (const char * geom_id);
 
-        public:
-            /**
-             * \brief get the number of features into layer
-             */
-            long int
-            getNbFeatures ();
+        /**
+         * \brief check if the scal is in the scale range min_scale -> max_scale
+         * @param scale the scale to check
+         */
+        bool isScaleValid (double scale);
 
-            /**
-             * \brief get layer's name
-             */
-            const char*
-            getName ();
+    public:
+        /**
+         * \brief get the number of features into layer
+         */
+        int getNbFeatures();
 
-            /**
-             * \brief rename the layer
-             * @param name the new name
-             */
-            void
-            rename ( char *name);
+        /**
+         * \brief get layer's name
+         */
+        const char * getName();
 
-            /**
-             *  \brief get arrangement policy
-             */
-            Arrangement
-            getArrangement ();
 
-            /**
-             * \brief set arrangement policy
-             *
-             * @param arrangement arrangement policy
-             */
-            void
-            setArrangement ( Arrangement arrangement);
+        /**
+         * \brief rename the layer
+         * @param name the new name
+         */
+        void rename (char *name);
 
-            /**
-             * \brief get units for label size
-             */
-            Units
-            getLabelUnit ();
+        /**
+         *  \brief get arrangement policy
+         */
+        Arrangement getArrangement();
 
-            /**
-             * \brief set unit for label size
-             * 
-             */
-            void
-            setLabelUnit ( Units label_unit);
+        /**
+         * \brief set arrangement policy
+         *
+         * @param arrangement arrangement policy
+         */
+        void setArrangement (Arrangement arrangement);
 
-            /**
-             * \brief activate or desactivate the layer
-             *
-             * active means "is currently display". When active is false
-             * feature of this layer will never be used (neither for
-             * labelling nor as obstacles)
-             *
-             * @param active turn the layer active (true) or inactive (false)
-             */
-            void
-            setActive ( bool active);
+        /**
+         * \brief get units for label size
+         */
+        Units getLabelUnit ();
 
-            /**
-             * \brief return the layer's activity status
-             */
-            bool
-            isActive ();
+        /**
+         * \brief set unit for label size
+         * 
+         */
+        void setLabelUnit (Units label_unit);
 
-            /**
-             * \brief tell pal whether the layer has to be labelled.
-             *
-             * The layer will be labelled if and only if toLabel and isActive were set to true
-             *
-             * @param toLabel set to false disable lbelling this layer
-             */
-            void
-            setToLabel ( bool toLabel);
+        /**
+         * \brief activate or desactivate the layer
+         *
+         * active means "is currently display". When active is false
+         * feature of this layer will never be used (neither for
+         * labelling nor as obstacles)
+         *
+         * @param active turn the layer active (true) or inactive (false)
+         */
+        void setActive (bool active);
 
-            /**
-             * \brief return if the layer will be labelled or not
-             */
-            bool
-            isToLabel ();
+        /**
+         * \brief return the layer's activity status
+         */
+        bool isActive();
 
-            /**
-             * \brief mark layer's features as obstacles
-             *
-             * Avoid putting labels over obstalces.
-             * isActive must also be true to consider feature as obstacles,
-             * otherwise they will be ignored
-             */
-            void
-            setObstacle ( bool obstacle);
 
-            /**
-             * \brief return the obstacle status
-             */
-            bool
-            isObstacle ();
+        /**
+         * \brief tell pal whether the layer has to be labelled.
+         *
+         * The layer will be labelled if and only if toLabel and isActive were set to true
+         *
+         * @param toLabel set to false disable lbelling this layer
+         */
+        void setToLabel (bool toLabel);
 
-            /**
-             * \brief set the minimum valid scale, below this scale the layer will not be labelled
-             *
-             * Use -1 to disable
-             */
-            void
-            setMinScale ( long double min_scale);
 
-            /**
-             * \brief return the minimum valid scale
-             */
-            long double
-            getMinScale ();
+        /**
+         * \brief return if the layer will be labelled or not
+         */
+        bool isToLabel();
 
-            /**
-             * \brief set the maximum valid scale, upon this scale the layer will not be labelled
-             *
-             * use -1 to disable
-             */
-            void
-            setMaxScale ( long double max_scale);
 
-            /**
-             * \brief return the maximum valid scale
-             */
-            long double
-            getMaxScale ();
+        /**
+         * \brief mark layer's features as obstacles
+         *
+         * Avoid putting labels over obstalces.
+         * isActive must also be true to consider feature as obstacles,
+         * otherwise they will be ignored
+         */
+        void setObstacle (bool obstacle);
 
-            /**
-             * \ brief set the layer priority
-             *
-             * The best priority is 0, the worst is 1
-             * Should be links with a slider in a nice gui
-             */
-            void
-            setPriority ( long double priority);
+        /**
+         * \brief return the obstacle status
+         */
+        bool isObstacle();
 
-            /**
-             * return the layer's priority
-             */
-            long double
-            getPriority ();
+        /**
+         * \brief set the minimum valid scale, below this scale the layer will not be labelled
+         *
+         * Use -1 to disable
+         */
+        void setMinScale (double min_scale);
 
-            /**
-             * \brief register a feature in the layer
-             *
-             * @param geom_id unique identifier
-             * @param label_x label width
-             * @param label_y label height
-             * @param userGeom user's geometry that implements the PalGeometry interface
-             *
-             * @throws PalException::FeatureExists
-             */
-            void
-            registerFeature ( const char *geom_id,
-                              PalGeometry *userGeom,
-                              long double label_x = -1,
-                              long double label_y = -1);
+        /**
+         * \brief return the minimum valid scale
+         */
+        double getMinScale();
 
-            // TODO implement
-            void
-            unregisterFeature ( const char *geom_id);
 
-            // TODO call that when a geometry change (a moveing points, etc)
-            //void updateFeature();
+        /**
+         * \brief set the maximum valid scale, upon this scale the layer will not be labelled
+         *
+         * use -1 to disable
+         */
+        void setMaxScale (double max_scale);
 
-            /**
-             * \brief change the label size for a feature
-             *
-             * @param geom_id unique identifier of the feature
-             * @param label_x new label width
-             * @param label_y new label height
-             *
-             * @throws PalException::UnknownFeature
-             * @throws PalException::ValueNotInRange
-             */
-//        void setFeatureLabelSize (const char *geom_id, long double label_x, long double label_y, bool direccion);
-            void
-            setFeatureLabelSize ( const char *geom_id,
-                                  long double label_x,
-                                  long double label_y,
-                                  bool direccion,
-                                  long double alphaPAu,
-                                  bool stoped = false);
 
-            /**
-             * \brief get the label height for a specific feature
-             *
-             * @param geom_id unique of the feature
-             *
-             * @throws PalException::UnknownFeature
-             */
-            long double
-            getFeatureLabelHeight ( const char *geom_id);
+        /**
+         * \brief return the maximum valid scale
+         */
+        double getMaxScale();
 
-            /**
-             * \brief get the label width for a specific feature
-             *
-             * @param geom_id unique of the feature
-             *
-             * @throws PalException::UnknownFeature
-             */
-            long double
-            getFeatureLabelWidth ( const char *geom_id);
 
-            /**
-             * \brief set the symbol size (pixel) for a specific feature
-             *
-             * @param geom_id unique od of the feaiture
-             * @param distlabel symbol size (point radius or line width)
-             *
-             * @throws PalException::UnknownFeature
-             * @throws PalException::ValueNotInRange
-             */
-            void
-            setFeatureDistlabel ( const char *geom_id,
-                                  long int distlabel);
+        /**
+         * \ brief set the layer priority
+         *
+         * The best priority is 0, the worst is 1
+         * Should be links with a slider in a nice gui
+         */
+        void setPriority (double priority);
 
-            /**
-             * \brief get the symbol size (pixel) for a specific feature
-             *
-             * @param geom_id unique of of the feature
-             * @return the symbol size (point radius or line width)
-             *
-             * @throws PalException::UnknownFeature
-             */
-            long int
-            getFeatureDistlabel ( const char *geom_id);
+
+        /**
+         * return the layer's priority
+         */
+        double getPriority();
+
+        /**
+         * \brief register a feature in the layer
+         *
+         * @param geom_id unique identifier
+         * @param label_x label width
+         * @param label_y label height
+         * @param userGeom user's geometry that implements the PalGeometry interface
+         *
+         * @throws PalException::FeatureExists
+         */
+        void registerFeature (const char *geom_id, PalGeometry *userGeom, double label_x =-1, double label_y = -1);
+
+        // TODO implement
+        void unregisterFeature (const char *geom_id);
+
+        // TODO call that when a geometry change (a moveing points, etc)
+        //void updateFeature();
+
+        /**
+         * \brief change the label size for a feature
+         *
+         * @param geom_id unique identifier of the feature
+         * @param label_x new label width
+         * @param label_y new label height
+         *
+         * @throws PalException::UnknownFeature
+         * @throws PalException::ValueNotInRange
+         */
+//        void setFeatureLabelSize (const char *geom_id, double label_x, double label_y, bool direccion);
+        void setFeatureLabelSize (const char *geom_id, double label_x, double label_y, bool direccion, double alphaPAu, bool stoped=false);
+
+        /**
+         * \brief get the label height for a specific feature
+         *
+         * @param geom_id unique of the feature
+         *
+         * @throws PalException::UnknownFeature
+         */
+        double getFeatureLabelHeight (const char *geom_id);
+
+        /**
+         * \brief get the label width for a specific feature
+         *
+         * @param geom_id unique of the feature
+         *
+         * @throws PalException::UnknownFeature
+         */
+        double getFeatureLabelWidth (const char *geom_id);
+
+
+        /**
+         * \brief set the symbol size (pixel) for a specific feature
+         *
+         * @param geom_id unique od of the feaiture
+         * @param distlabel symbol size (point radius or line width)
+         *
+         * @throws PalException::UnknownFeature
+         * @throws PalException::ValueNotInRange
+         */
+        void setFeatureDistlabel (const char *geom_id, int distlabel);
+
+        /**
+         * \brief get the symbol size (pixel) for a specific feature
+         *
+         * @param geom_id unique of of the feature
+         * @return the symbol size (point radius or line width)
+         *
+         * @throws PalException::UnknownFeature
+         */
+        int getFeatureDistlabel (const char *geom_id);
 
     };
 
-}     // end namespace pal
+} // end namespace pal
 
 #endif

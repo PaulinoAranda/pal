@@ -26,6 +26,7 @@
 #ifndef _SIMPLE_MUTEX_H_
 #define _SIMPLE_MUTEX_H_
 
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -51,40 +52,32 @@
 #define DESTROY_MUTEX(mutex) (CloseHandle(mutex))
 #endif
 
-namespace pal
-{
+namespace pal {
 
     typedef THREAD_TYPE MUTEX_T;
 
-    class SimpleMutex
-    {
-        private:
-            MUTEX_T mutex;
+    class SimpleMutex {
+    private:
+        MUTEX_T mutex;
 
-        public:
-            SimpleMutex ()
-            {
-                CREATE_MUTEX (mutex);
-            }
+    public:
+        SimpleMutex() {
+            CREATE_MUTEX (mutex);
+        }
 
-            ~SimpleMutex ()
-            {
-                DESTROY_MUTEX (mutex);
-            }
+        ~SimpleMutex() {
+            DESTROY_MUTEX (mutex);
+        }
 
-            void
-            lock ()
-            {
-                LOCK (mutex);
-            }
+        void lock() {
+            LOCK (mutex);
+        }
 
-            void
-            unlock ()
-            {
-                UNLOCK (mutex);
-            }
+        void unlock() {
+            UNLOCK (mutex);
+        }
     };
 
-}     // namespace
+} // namespace
 
 #endif

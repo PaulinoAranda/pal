@@ -37,14 +37,14 @@ void
 testSquares ( pal::Pal *pal,
               pal::Layer *layer,
               pal::Layer *layer2,
-              long int num)
+              int num)
 {
-    const long double dx = 300.;
-    const long double dy = -200.;
-     long double lx = 450.;
-     long double ly = 200.;
-     const long double ofx = 30000.;
-     const long double ofy = -5000.;
+    const double dx = 300.;
+    const double dy = -200.;
+     double lx = 450.;
+     double ly = 200.;
+     const double ofx = 30000.;
+     const double ofy = -5000.;
 
     std::list< Geom*> geoms;
 
@@ -73,9 +73,9 @@ testSquares ( pal::Pal *pal,
         layer2->registerFeature (id.str ().c_str (), geom, 10000, 5000);
         layer2->setFeatureDistlabel(id.str ().c_str (), 1);
     }
-    for ( long int y = 0; y < num; ++y)
+    for ( int y = 0; y < num; ++y)
     {
-        for ( long int x = 0; x < num; ++x)
+        for ( int x = 0; x < num; ++x)
         {
             std::ostringstream wkt;
             std::ostringstream id;
@@ -103,16 +103,16 @@ testSquares ( pal::Pal *pal,
 
     pal::PalStat *stats;
 
-    long double xmin = 0.;
-    long double xmax = ofx+dx *10.;
-//    long double ymin = dy *4.;
-    long double ymin = ofy+ dy *10.;
-    long double ymax = 30000;
+    double xmin = 0.;
+    double xmax = ofx+dx *10.;
+//    double ymin = dy *4.;
+    double ymin = ofy+ dy *10.;
+    double ymax = 30000;
 
-    long double bbox[4] =
+    double bbox[4] =
     { xmin, ymin, xmax, ymax };
 
-    std::list< pal::Label*> *labels = pal->labeller (1., bbox, &stats, false);
+    std::list< pal::Label*> *labels = pal->labeller (1., bbox, &stats, true);
 
     std::cout << " pal->labeller size: " << labels->size()<<"\n";
     while (labels->size () > 0)
@@ -153,13 +153,13 @@ TEST_CASE("Geos Labelling", "Geos labelling")
     pal.setMapUnit (pal::Units::PIXEL);
 
 
-    pal::Layer * layer2 = pal.addLayer ("main2", (long double)-1, (long double)-1, pal::P_HORIZ,
-                                       pal::Units::PIXEL, (long double)0.9, true, true, false);
+    pal::Layer * layer2 = pal.addLayer ("main2", ( double)-1, ( double)-1, pal::P_HORIZ,
+                                       pal::Units::PIXEL, ( double)0.9, true, true, false);
 
 
 
-    pal::Layer * layer = pal.addLayer ("main", (long double)-1, (long double)-1, pal::P_POINT,
-                                       pal::Units::PIXEL, (long double)0.1, false, true, true);
+    pal::Layer * layer = pal.addLayer ("main", ( double)-1, ( double)-1, pal::P_POINT,
+                                       pal::Units::PIXEL, ( double)0.1, false, true, true);
 
     testSquares(&pal, layer, layer2, 2);
 

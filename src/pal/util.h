@@ -40,170 +40,137 @@
 #include "rtree.hpp"
 #include "pointset.h"
 
-namespace pal
-{
+namespace pal {
 
     class LabelPosition;
     class Layer;
     class Feature;
 
-    inline bool
-    ptrFeatureCompare ( Feature *a,
-                        Feature *b)
-    {
+    inline bool ptrFeatureCompare (Feature * a, Feature * b) {
         return a == b;
     }
+
 
     /**
      * \brief For translating feature from GEOS to Pal
      */
-    typedef struct Feat
-    {
-            const GEOSGeometry *geom;
-            const char *id;
-            long int type;
+    typedef struct Feat {
+        const GEOSGeometry *geom;
+        const char *id;
+        int type;
 
-            long int nbPoints;
-            long double *x;
-            long double *y;
+        int nbPoints;
+        double *x;
+        double *y;
 
-            long double minmax[4];     // {xmin, ymin, xmax, ymax}
+        double minmax[4]; // {xmin, ymin, xmax, ymax}
 
-            long int nbHoles;
-            PointSet **holes;
+        int nbHoles;
+        PointSet **holes;
 
     } Feat;
+
 
     /**
      * \brief split GEOS geom (multilinestring, multipoint, multipolygon) => (point, linestring, polygone)
      */
-    LinkedList< Feat*>*
-    splitGeom ( GEOSGeometry *the_geom,
-                const char *geom_id);
+    LinkedList<Feat*> * splitGeom (GEOSGeometry *the_geom, const char *geom_id);
 
-    typedef struct _feats
-    {
-            Feature *feature;
-            PointSet *shape;
-            long double priority;
-            long int nblp;
-            LabelPosition **lPos;
+    typedef struct _feats {
+        Feature *feature;
+        PointSet *shape;
+        double priority;
+        int nblp;
+        LabelPosition **lPos;
     } Feats;
 
-    typedef struct _elementary_transformation
-    {
-            long int feat;
-            long int old_label;
-            long int new_label;
+
+    typedef struct _elementary_transformation {
+        int feat;
+        int  old_label;
+        int  new_label;
     } ElemTrans;
+
+
 
 #define EPSILON 1e-9
 
-    inline int
-    max ( long int a,
-          long int b)
-    {
-        return (a > b ? a : b);
-    }
 
-    inline double
-    max ( long double a,
-          long double b)
-    {
-        return (a > b ? a : b);
-    }
+    inline int max (int a, int b)
+    {return (a > b ? a : b);}
 
-    inline int
-    min ( long int a,
-          long int b)
-    {
-        return (a < b ? a : b);
-    }
+    inline double max (double a, double b)
+    {return (a > b ? a : b);}
 
-    inline double
-    min ( long double a,
-          long double b)
-    {
-        return (a < b ? a : b);
-    }
+    inline int min (int a, int b)
+    {return (a < b ? a : b);}
 
-    inline double
-    vabs ( long double x)
-    {
-        return x >= 0 ? x : -x;
-    }
+    inline double min (double a, double b)
+    {return (a < b ? a : b);}
 
-    inline double
-    degree2meter ( long double delta_deg)
-    {
-        long double lat = delta_deg * 0.5;
-        const static long double rads = (4.0 * atan (1.0)) / 180.0;
-        long double a = cos (lat * rads);
-        a = a * a;
-        long double c = 2.0 * atan2 (sqrt (a), sqrt (1.0 - a));
-        const static long double ra = 6378000;     // [m]
-        const static long double e = 0.0810820288;
-        long double radius = ra * (1.0 - e * e) / pow (1.0 - e * e * sin (lat * rads) * sin (lat * rads), 1.5);
-        long double meters = (delta_deg) / 180.0 * radius * c;     // [m]
+    inline double vabs (double x)
+    { return x >= 0 ? x : -x; }
+
+
+
+      
+    inline double degree2meter (double delta_deg){
+        double lat = delta_deg*0.5;
+        const static double rads = (4.0*atan(1.0))/180.0;
+        double a = cos(lat*rads);
+        a = a*a;
+        double c = 2.0*atan2(sqrt(a), sqrt(1.0 - a));
+        const static double ra = 6378000; // [m]
+        const static double e = 0.0810820288;
+        double radius = ra*(1.0 - e*e) / pow(1.0 - e*e*sin(lat*rads)*sin(lat*rads ), 1.5 );
+        double meters = (delta_deg) / 180.0 * radius * c; // [m]
 
         return meters;
     }
 
-    inline double
-    unit_convert ( long double x,
-                   Units from,
-                   Units to,
-                   long int dpi,
-                   long double scale,
-                   long double delta_canvas_width)
-    {
+    inline double unit_convert (double x, Units from, Units to, int dpi, double scale, double delta_canvas_width)
+    { 
         /* nothing to convert */
-        if (from == to)
-        {
+        if (from == to){
             return x;
         }
 
-        switch (from)
-        {
+        switch (from){
             case pal::PIXEL:
-                switch (to)
-                {
+                switch (to){
                     case pal::METER:
-                        return ((x / (long double) (dpi)) * 0.0254) * scale;
+                        return ((x / double (dpi)) * 0.0254) * scale;
                     case pal::FOOT:
-                        return ((x / (long double) (dpi)) * 12) * scale;
+                        return ((x / double (dpi))*12) * scale;
                     case pal::DEGREE:
-                        long double iw = degree2meter (delta_canvas_width) * 39.3700787;
+                        double iw = degree2meter(delta_canvas_width)*39.3700787;
                         return (x * delta_canvas_width * scale) / (iw * dpi);
                 }
                 break;
             case pal::METER:
-                switch (to)
-                {
+                switch (to){
                     case pal::PIXEL:
-                        return (x * dpi) / (2.54 * scale);
+                        return (x*dpi)/(2.54*scale);
                     case pal::FOOT:
-                        return x / 0.3048;
+                        return x/0.3048;
                     case pal::DEGREE:
-                        long double mw = degree2meter (delta_canvas_width);
+                        double mw = degree2meter(delta_canvas_width);
                         return (x * delta_canvas_width) / mw;
                 }
                 break;
             case pal::FOOT:
-                switch (to)
-                {
+                switch (to){
                     case pal::PIXEL:
-                        return (x * dpi) / (12 * scale);
+                        return (x*dpi)/(12*scale);
                     case pal::METER:
-                        return x * 0.3048;
+                        return x*0.3048;
                     case pal::DEGREE:
-                        long double iw = degree2meter (delta_canvas_width) * 39.3700787;
+                        double iw = degree2meter(delta_canvas_width)*39.3700787;
                         return (x * delta_canvas_width) / iw;
                 }
                 break;
             case pal::DEGREE:
-                switch (to)
-                {
+                switch (to){
                     case pal::PIXEL:
                         fprintf (stderr, "Degree to pixel not yet implemented");
                         break;
@@ -221,86 +188,52 @@ namespace pal
         return 0.0;
     }
 
+
     /* From meters to PostScript Point */
-    inline void
-    convert2pt ( long int *x,
-                 long double scale,
-                 long int dpi,
-                 Units from,
-                 long double delta_canvas_width)
-    {
-        *x = ( int) ((unit_convert (*x, from, pal::METER, dpi, scale, delta_canvas_width) / scale) * 39.3700787402 * dpi + 0.5);
+    inline void convert2pt (int *x, double scale, int dpi, Units from, double delta_canvas_width) {
+        *x = (int) ( ( unit_convert(*x, from, pal::METER, dpi, scale, delta_canvas_width) / scale) * 39.3700787402 * dpi + 0.5);
     }
 
-    inline int
-    convert2pt ( long double x,
-                 long double scale,
-                 long int dpi,
-                 Units from,
-                 long double delta_canvas_width)
-    {
-        return ( int) ((unit_convert (x, from, pal::METER, dpi, scale, delta_canvas_width) / scale) * 39.3700787402 * dpi + 0.5);
+
+    inline int convert2pt (double x, double scale, int dpi, Units from, double delta_canvas_width) {
+        return (int) ( (unit_convert(x, from, pal::METER, dpi, scale, delta_canvas_width) / scale) * 39.3700787402 * dpi + 0.5);
     }
 
-    void
-    sort ( long double *heap,
-           long int *x,
-           long int *y,
-           long int N);
 
-    inline bool
-      intCompare ( long int a,
-                 long int b)
-    {
+    void sort (double* heap, int* x, int* y, int N);
+
+
+    inline bool intCompare (int a, int b) {
         return a == b;
     }
 
-    inline bool
-    strCompare ( char *a,
-                 char *b)
-    {
+    inline bool strCompare (char * a, char * b) {
         return strcmp (a, b) == 0;
     }
 
-    inline bool
-    ptrLPosCompare ( LabelPosition *a,
-                     LabelPosition *b)
-    {
+    inline bool ptrLPosCompare (LabelPosition * a, LabelPosition * b) {
         return a == b;
     }
 
-    inline bool
-    ptrPSetCompare ( PointSet *a,
-                     PointSet *b)
-    {
+    inline bool ptrPSetCompare (PointSet * a, PointSet * b) {
         return a == b;
     }
 
-    inline bool
-    ptrFeatCompare ( Feat *a,
-                     Feat *b)
-    {
+
+    inline bool ptrFeatCompare (Feat * a, Feat * b) {
         return a == b;
     }
 
-    inline bool
-    ptrFeatsCompare ( Feats *a,
-                      Feats *b)
-    {
+    inline bool ptrFeatsCompare (Feats * a, Feats * b) {
         return a == b;
     }
 
-    inline bool
-    ptrLayerCompare ( Layer *a,
-                      Layer *b)
-    {
+    inline bool ptrLayerCompare (Layer * a, Layer * b) {
         return a == b;
     }
 
-    inline bool
-    ptrETCompare ( ElemTrans *a,
-                   ElemTrans *b)
-    {
+
+    inline bool ptrETCompare (ElemTrans * a, ElemTrans * b) {
         return a == b;
     }
 
@@ -310,42 +243,27 @@ namespace pal
      * \param N number of items
      * \param greater function to compare two items
      **/
-    void
-    sort ( void **items,
-           long int N,
-           bool
-           (*greater) ( void *l,
-                        void *r));
+    void sort (void** items, int N, bool (*greater) (void *l, void *r));
 
-    void
-    tabcpy ( long int n,
-             const long int *const x,
-             const long int *const y,
-             const long double *const prob,
-             long int *cx,
-             long int *cy,
-             long double *p);
+    void tabcpy (int n, const int* const x, const int* const y,
+                 const double* const prob, int *cx, int *cy, double *p);
 
-    typedef struct
-    {
-            LabelPosition *lp;
-            long int *nbOv;
-            long double *cost;
-            long double *inactiveCost;
-            //int *feat;
+
+    typedef struct {
+        LabelPosition *lp;
+        int *nbOv;
+        double *cost;
+        double *inactiveCost;
+        //int *feat;
     } CountContext;
 
     /*
      * count overlap, ctx = p_lp
      */
-    bool
-    countOverlapCallback ( LabelPosition *lp,
-                           void *ctx);
+    bool countOverlapCallback (LabelPosition *lp, void *ctx);
 
-    bool
-    countFullOverlapCallback ( LabelPosition *lp,
-                               void *ctx);
+    bool countFullOverlapCallback (LabelPosition *lp, void *ctx);
 
-}     // namespace
+} // namespace
 
 #endif
