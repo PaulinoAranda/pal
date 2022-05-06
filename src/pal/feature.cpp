@@ -164,7 +164,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 			scale, delta_width);
 
 	int nbp = layer->pal->point_p;
-	int distanceNbp = 3;
+	int distanceNbp = 1;
 //std::cout << "Nbp : " << nbp << std::endl;
 
 	int i, ii;
@@ -362,7 +362,8 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 			(*lPos)[i + ((ii - 1) * nbp)] = new LabelPosition(
 					i + ((ii - 1) * nbp), lx, ly, xrm, yrm, 0, alpha, cost,
 					this);
-			//std::cout << ", " << cost ;
+//			if(cost >1.)
+//			 std::cout << ", " << cost <<std::endl;
 			icost += inc;
 
 			if (icost == nbp) {
@@ -637,6 +638,16 @@ int Feature::setPositionForPolygon(double scale, LabelPosition ***lPos,
 
 		int num_try = 0;
 		int max_try = 10;
+
+		if(this->distlabel==0){
+		    positions->push_back(
+		            new LabelPosition(0,  boxes[0]->x[0],  boxes[0]->y[0]- boxes[0]->length ,
+		                              boxes[0]->width, boxes[0]->length, alpha, alphaPAu, 0.0001,
+		              this));
+//		    std::cout << "#### xrm "<< xrm<<" yrm "<< yrm<<" width"<<
+//              boxes[0]->width<<"length "<< boxes[0]->length << " label_x "<<label_x<<" label_y "<<label_y<< " x " <<  boxes[0]->x[0] << " y "<< boxes[0]->y[0] <<std::endl;
+		}else{
+
 		do {
 			for (bbid = 0; bbid < j; bbid++) {
 				CHullBox *box = boxes[bbid];
@@ -747,7 +758,7 @@ int Feature::setPositionForPolygon(double scale, LabelPosition ***lPos,
 				num_try++;
 			}
 		} while (nbp == 0 && num_try < max_try);
-
+		}
 		nbp = positions->size();
 
 		(*lPos) = new LabelPosition*[nbp];

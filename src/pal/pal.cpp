@@ -964,7 +964,7 @@ namespace pal {
         SearchMethod old_searchMethod = searchMethod;
 
         if (displayAll) {
- //           setSearch (POPMUSIC_TABU);
+            setSearch (POPMUSIC_TABU);
         }
 
 #ifdef _VERBOSE_
@@ -1058,7 +1058,7 @@ namespace pal {
 
 
         if (displayAll) {
- //           setSearch (old_searchMethod);
+            setSearch (old_searchMethod);
         }
 
         return solution;

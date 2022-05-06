@@ -368,6 +368,7 @@ void Layer::registerFeature(const char *geom_id, PalGeometry *userGeom,
 
 			rtree->Insert(bmin, bmax, ft);
 
+
 //			std::cout << "FT INSETED  " << ft << " Cell  " << features->last
 //					<< " CellItem  " << features->last->item << std::endl;
 
@@ -524,12 +525,89 @@ void Layer::setFeatureLabelSize(const char *geom_id, double label_x,
 
 		for (i = 0; i < nb; i++) {
 			feat = it->item;
+
+			//TODO
+			if(feat->x)
+			 (*feat->x)= label_x;
+   if(feat->y)
+    (*feat->y)= label_y;
+
 			feat->label_x = label_x;
 			feat->label_y = label_y;
 			feat->direccion = direccion;
 			feat->stoped = stoped;
 
 			feat->alphaPAu = alphaPAu;
+/*
+//			feat->userGeom->getGeosGeometry();
+
+/////////////////////////////////////////////////////
+
+
+	  double bmin[2];
+	  double bmax[2];
+		  bmin[0] = feat->xmin;
+		  bmin[1] = feat->ymin;
+
+		  bmax[0] = feat->xmax;
+		  bmax[1] = feat->ymax;
+
+		  rtree->Remove(bmin, bmax, feat);
+
+
+
+		  GEOSGeometry *the_geom = feat->userGeom->getGeosGeometry();
+		  LinkedList<Feat*> *finalQueue = splitGeom(the_geom, geom_id);
+
+
+//		  int nGeom = finalQueue->size();
+//		  int part = 0;
+//
+//		  bool first_feat = true;
+
+		  while (finalQueue->size() > 0) {
+		   Feat *f = finalQueue->pop_front();
+		#ifdef _DEBUG_FULL_
+		            std::cout << "f-> popped" << std::endl;
+		#endif
+//		   Feature *ft;
+
+		   switch (f->type) {
+		   case GEOS_POINT:
+		   case GEOS_LINESTRING:
+		   case GEOS_POLYGON:
+
+		    // ignore invalid geometries
+		    if ((f->type == GEOS_LINESTRING && f->nbPoints < 2)
+		      || (f->type == GEOS_POLYGON && f->nbPoints < 3))
+		     continue;
+
+
+//		    ft = new Feature(f, this, part, nGeom, userGeom);
+//		    ft->deleteCoord();
+
+		    break;
+		   default:
+			    exit(-1);
+		   }
+
+		   double bmin[2];
+		     double bmax[2];
+
+		     bmin[0] = f->minmax[0];
+		     bmax[0] = f->minmax[2];
+		   bmin[1] = f->minmax[1];
+		   bmax[1] = f->minmax[3];
+
+
+
+	   rtree->Insert(bmin, bmax, feat);
+
+	   delete f;
+		  }
+		    delete finalQueue;
+
+*/
 			it = it->next;
 		}
 	} else {
