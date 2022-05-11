@@ -125,6 +125,7 @@ namespace pal {
          * \brief maximum # candidates for a point
          */
         int point_p;
+        int point_pl;
 
         /**
          * \brief maximum # candidates for a line
@@ -341,6 +342,7 @@ namespace pal {
          * @param point_p # candidates for a point
          */
         void setPointP (int point_p);
+        void setPointPL (int point_pl);
 
         /**
          * \brief set maximum # candidates to generate for lines features

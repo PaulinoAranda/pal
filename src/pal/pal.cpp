@@ -102,7 +102,9 @@ namespace pal {
         setSearch (CHAIN);
 
         dpi = 72;
-        point_p = 8*2;
+        point_p = 8;
+        point_pl = 1;
+
         line_p = 8;
         poly_p = 8;
 
@@ -1068,6 +1070,11 @@ namespace pal {
         if (point_p > 0)
             this->point_p = point_p;
     }
+
+    void Pal::setPointPL (int point_pl) {
+          if (point_p > 0)
+              this->point_pl = point_pl;
+      }
 
     void Pal::setLineP (int line_p) {
         if (line_p > 0)

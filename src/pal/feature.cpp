@@ -164,7 +164,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 			scale, delta_width);
 
 	int nbp = layer->pal->point_p;
-	int distanceNbp = 1;
+	int distanceNbp = layer->pal->point_pl;
 //std::cout << "Nbp : " << nbp << std::endl;
 
 	int i, ii;
@@ -220,8 +220,8 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 		int inc = 2;
 
 		if (distlabel > 0) {
-			gamma1 = atan2(yrm / 2., distlabel * (double) (ii * ii) + xrm / 2.);
-			gamma2 = atan2(xrm / 2., distlabel * (double) (ii * ii) + yrm / 2.);
+			gamma1 = atan2(yrm / 2., distlabel * (double) (ii + ((ii -1)*2)) + xrm / 2.);
+			gamma2 = atan2(xrm / 2., distlabel * (double) (ii + ((ii -1)*2)) + yrm / 2.);
 		} else {
 			gamma1 = gamma2 = a90 / 3.0;
 		}
@@ -248,7 +248,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 				alpha += a360;
 
 			if (alpha < gamma1 || alpha > a360 - gamma1) {     // on the right
-				lx += distlabel * (double) (ii * ii);
+				lx += distlabel * (double) (ii + ((ii -1)*2));
 				double iota = (alpha + gamma1);
 				if (iota > a360 - gamma1)
 					iota -= a360;
@@ -256,29 +256,29 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 				//ly += -yrm/2.0 + tan(alpha)*(distlabel + xrm/2);
 				ly += -yrm + yrm * iota / (2. * gamma1);
 			} else if (alpha < a90 - gamma2) {     // top-right
-				lx += distlabel * (double) (ii * ii) * cos(alpha);
-				ly += distlabel * (double) (ii * ii) * sin(alpha);
+				lx += distlabel * (double) (ii + ((ii -1)*2)) * cos(alpha);
+				ly += distlabel * (double) (ii + ((ii -1)*2)) * sin(alpha);
 			} else if (alpha < a90 + gamma2) {     // top
 												   //lx += -xrm/2.0 - tan(alpha+a90)*(distlabel + yrm/2);
 				lx += -xrm * (alpha - a90 + gamma2) / (2. * gamma2);
-				ly += distlabel * (double) (ii * ii);
+				ly += distlabel * (double) (ii + ((ii -1)*2));
 			} else if (alpha < a180 - gamma1) {     // top left
-				lx += distlabel * (double) (ii * ii) * cos(alpha) - xrm;
-				ly += distlabel * (double) (ii * ii) * sin(alpha);
+				lx += distlabel * (double) (ii + ((ii -1)*2)) * cos(alpha) - xrm;
+				ly += distlabel * (double) (ii + ((ii -1)*2)) * sin(alpha);
 			} else if (alpha < a180 + gamma1) {     // left
-				lx += -distlabel * (double) (ii * ii) - xrm;
+				lx += -distlabel * (double) (ii + ((ii -1)*2)) - xrm;
 				//ly += -yrm/2.0 - tan(alpha)*(distlabel + xrm/2);
 				ly += -(alpha - a180 + gamma1) * yrm / (2. * gamma1);
 			} else if (alpha < a270 - gamma2) {     // down - left
-				lx += distlabel * (double) (ii * ii) * cos(alpha) - xrm;
-				ly += distlabel * (double) (ii * ii) * sin(alpha) - yrm;
+				lx += distlabel * (double) (ii + ((ii -1)*2)) * cos(alpha) - xrm;
+				ly += distlabel * (double) (ii + ((ii -1)*2)) * sin(alpha) - yrm;
 			} else if (alpha < a270 + gamma2) {     // down
-				ly += -distlabel * (double) (ii * ii) - yrm;
+				ly += -distlabel * (double) (ii + ((ii -1)*2)) - yrm;
 				//lx += -xrm/2.0 + tan(alpha+a90)*(distlabel + yrm/2);
 				lx += -xrm + (alpha - a270 + gamma2) * xrm / (2. * gamma2);
 			} else if (alpha < a360) {
-				lx += distlabel * ((double) (ii * ii)) * cos(alpha);
-				ly += distlabel * (double) (ii * ii) * sin(alpha) - yrm;
+				lx += distlabel * ((double) (ii + ((ii -1)*2))) * cos(alpha);
+				ly += distlabel * (double) (ii + ((ii -1)*2)) * sin(alpha) - yrm;
 			} else {
 				std::cout << "Oups... alpha..  " << alpha << std::endl;
 
