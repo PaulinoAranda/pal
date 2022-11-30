@@ -44,6 +44,8 @@ public:
     GEOSGeometry* getGeosGeometry();
     void releaseGeosGeometry (GEOSGeometry *the_geom);
 
+    void setGeosGeometry (const char *wkb);
+
     Geom (const char *wkb);
     virtual ~Geom();
 

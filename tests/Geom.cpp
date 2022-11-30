@@ -45,6 +45,20 @@ Geom::Geom (const char *wkt) {
     GEOSWKTReader_destroy (reader);
 }
 
+
+void Geom::setGeosGeometry (const char *wkb){
+    nb = 0;
+    int i;
+    GEOSGeom_destroy (the_geom);
+
+    GEOSWKTReader *reader = GEOSWKTReader_create();
+
+    the_geom = GEOSWKTReader_read (reader, wkb);
+    GEOSWKTReader_destroy (reader);
+}
+
+
+
 /**
 * \brief get the geometry in WKB hexa format
 * This method is called by Pal each time it needs a geom's coordinates

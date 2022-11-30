@@ -148,6 +148,7 @@ namespace pal {
          *\param bbox the bounding-box double[4] = {xmin, ymin, xmax, ymax}
          */
         bool isIn (double *bbox);
+        bool isInAll (double *bbox);
 
         /**
          * \brief Check whether or not this overlap with another labelPosition

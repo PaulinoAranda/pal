@@ -123,6 +123,19 @@ namespace pal {
         return false;
 
     }
+    bool LabelPosition::isInAll (double *bbox) {
+         int i;
+
+         for (i = 0;i < 4;i++) {
+             if (!(x[i] >= bbox[0] && x[i] <= bbox[2] &&
+                     y[i] >= bbox[1] && y[i] <= bbox[3]))
+                 return false;
+         }
+
+         return true;
+
+     }
+
 
     void LabelPosition::print() {
         std::cout << feature->getLayer()->getName() << "/" << feature->getUID() << "/" << id;

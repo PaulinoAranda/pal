@@ -869,7 +869,7 @@ int Feature::setPosition(double scale, LabelPosition ***lPos,
 
 // purge candidates that are outside the bbox
 	for (i = 0; i < nbp; i++) {
-		if (!(*lPos)[i]->isIn(bbox)) {
+		if (!(*lPos)[i]->isInAll(bbox)) {
 			rnbp--;
 			(*lPos)[i]->cost = DBL_MAX;
 		} else {     // this one is OK
