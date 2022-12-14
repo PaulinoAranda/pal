@@ -296,6 +296,38 @@ namespace pal {
         cp3 = cross_product (x3, y3, x4, y4, x1, y1);
         cp4 = cross_product (x3, y3, x4, y4, x2, y2);
 
+
+        if (cp1 == 0 && cp2 == 0 && cp3 == 0 && cp4 == 0) {
+            std::cout << "coolineaire..." << std::endl;
+            return false;
+        }
+
+        // 1 ter
+        if (cp1 == 0 && cp3 == 0) {
+            std::cout << "cp1 = cp3 = 0 => ignoring..." << std::endl;
+            return false;
+        }
+
+        // 1 bis
+        if (cp1 == 0 && cp4 == 0) {
+            std::cout << "cp1 = cp4 = 0 => ignoring..." << std::endl;
+            return false;
+        }
+
+        // 1 bis
+        if (cp2 == 0 && cp3 == 0) {
+            std::cout << "cp2 = cp3 = 0 => ignoring..." << std::endl;
+            return false;
+        }
+
+        // 2bis and 3bis
+        if (cp1 == 0 || cp3 == 0) {
+            std::cout << "skip..." << std::endl;
+            return false;
+        }
+
+
+
         if (cp1 * cp2 <= 0
                 && cp3 *cp4 <= 0)
             return computeLineIntersection (x1, y1, x2, y2, x3, y3, x4, y4, x, y);

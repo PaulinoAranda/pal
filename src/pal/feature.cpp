@@ -88,6 +88,10 @@ Feature::Feature(Feat *feat, Layer *layer, int part, int nPart,
 	this->type = feat->type;
 	stoped = false;
 	direccion = true;
+	oPointx=0;
+	oPointy=0;
+	the_geom=NULL;
+	cross=false;
 
 #ifdef _DEBUG_
         std::cout << "Corrdinates for " << layer->name << "/" << uid << " :" << nbPoints << " pts" << std::endl;
@@ -147,6 +151,9 @@ Feature::getUID() {
 
 int Feature::setPositionForPoint(double x, double y, double scale,
 		LabelPosition ***lPos, double delta_width) {
+	this->oPointx=x;
+	this->oPointy=y;
+
 
 #ifdef _DEBUG_
         std::cout << "SetPosition (point) : " << layer->name << "/" << uid << std::endl;
@@ -289,7 +296,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 			if (nbp == 1) {
 				cost = 0.0001 * (double) ii;
 			} else {
-				if (i == 1) {
+				if (i == 1 && !cross) {
 					if (direcionBis) {
 						if ((direccion
 								&& !((( M_PI / 4. - beta / 2. + a360)
@@ -852,6 +859,8 @@ int Feature::setPosition(double scale, LabelPosition ***lPos,
 			mapShape->getCentroid(cx, cy);
 			nbp = setPositionForPoint(cx, cy, scale, lPos, delta);
 //                releaseCoordinates();
+
+
 			break;
 		case P_LINE:
 		case P_LINE_AROUND:
@@ -866,6 +875,12 @@ int Feature::setPosition(double scale, LabelPosition ***lPos,
 	}
 
 	int rnbp = nbp;
+
+
+
+
+
+
 
 // purge candidates that are outside the bbox
 	for (i = 0; i < nbp; i++) {

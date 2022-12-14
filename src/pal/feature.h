@@ -79,6 +79,9 @@ namespace pal {
 
         bool direccion;
         bool stoped;
+        double oPointx;
+        double oPointy;
+        bool cross;
 
         //int id;   /* feature no id into layer */
         double label_x;
