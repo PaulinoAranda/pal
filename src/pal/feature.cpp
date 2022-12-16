@@ -296,7 +296,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 			if (nbp == 1) {
 				cost = 0.0001 * (double) ii;
 			} else {
-				if (i == 1 && !cross) {
+				if (i == 1 ) {
 					if (direcionBis) {
 						if ((direccion
 								&& !((( M_PI / 4. - beta / 2. + a360)
@@ -310,7 +310,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 														<= (a90 + M_PI / 4.
 																+ beta / 2.
 																+ a360)))))
-							ii == 1 ?
+							(ii == 1 && !cross) ?
 									cost = 0.0001 :
 									cost = (0.0002
 											+ (extraCost * 0.0020
@@ -339,7 +339,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 														<= (a90 + M_PI / 4.
 																+ beta / 2.
 																+ a360)))))
-							ii == 1 ?
+							(ii == 1 && !cross)?
 									cost = 0.0001 :
 									cost = (0.0002
 											+ (extraCost * 0.0020

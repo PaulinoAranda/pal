@@ -298,31 +298,31 @@ namespace pal {
 
 
         if (cp1 == 0 && cp2 == 0 && cp3 == 0 && cp4 == 0) {
-            std::cout << "coolineaire..." << std::endl;
+//            std::cout << "coolineaire..." << std::endl;
             return false;
         }
 
         // 1 ter
         if (cp1 == 0 && cp3 == 0) {
-            std::cout << "cp1 = cp3 = 0 => ignoring..." << std::endl;
+//            std::cout << "cp1 = cp3 = 0 => ignoring..." << std::endl;
             return false;
         }
 
         // 1 bis
         if (cp1 == 0 && cp4 == 0) {
-            std::cout << "cp1 = cp4 = 0 => ignoring..." << std::endl;
+//            std::cout << "cp1 = cp4 = 0 => ignoring..." << std::endl;
             return false;
         }
 
         // 1 bis
         if (cp2 == 0 && cp3 == 0) {
-            std::cout << "cp2 = cp3 = 0 => ignoring..." << std::endl;
+//            std::cout << "cp2 = cp3 = 0 => ignoring..." << std::endl;
             return false;
         }
 
         // 2bis and 3bis
         if (cp1 == 0 || cp3 == 0) {
-            std::cout << "skip..." << std::endl;
+//            std::cout << "skip..." << std::endl;
             return false;
         }
 

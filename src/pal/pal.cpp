@@ -759,11 +759,101 @@ namespace pal {
         filterCtx.pal = this;
         obstacles->Search (amin, amax, filteringCallback, (void*) &filterCtx);
 
+		for (i = 0;i < prob->nbft;i++) {
+			feat = fFeats->pop_front();
+			feat->feature->cross=false;
+			fFeats->push_back (feat);
+		}
+
+        LinkedList<Feats*> *fFeatsTmp = new LinkedList<Feats*> (ptrFeatsCompare);
+        Feats *featTmp;
+        int ii ;
+        for (i = 0;i < prob->nbft;i++) {
+        	featTmp = fFeats->pop_front();
+
+        	for ( ii = 0;ii < fFeats->size();ii++) {
+        		feat = fFeats->pop_front();
+        		if (feat->feature->type == GEOS_POINT) {
+        			int a = 0;
+        			for ( a = 0;a < feat->nblp;a++)
+        			{
+        				int b = 0;
+        				//        			for ( b = 0;b < feat->nblp;b++)
+        				{
+        					if( (!(featTmp->feature->oPointx == feat->feature->oPointx && featTmp->feature->oPointy == feat->feature->oPointy))){
+        						double ix,  iy;
+        						if(featTmp->feature->direccion){//45º
+        							if(feat->feature->direccion){//45º
+        								if( computeSegIntersection (featTmp->lPos[a]->x[0], featTmp->lPos[a]->y[0], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
+        										feat->lPos[b]->x[0], feat->lPos[b]->y[0], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
+												&ix, &iy)){
+        									if(a==0)
+        										featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.01;
+        									else
+        										featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
+        									feat->feature->cross=true;
+        									featTmp->feature->cross=true;
+        								}
+        								//        								if(dist_euc2d(featTmp->feature->oPointx, featTmp->feature->oPointy, feat->lPos[b]->x[0], feat->lPos[b]->y[0])< feat->feature->distlabel){
+        								//        									feat->lPos[b]->cost=feat->lPos[b]->cost+0.1;
+        								//        								}
+
+        							}else{
+        								if( computeSegIntersection (featTmp->lPos[a]->x[0], featTmp->lPos[a]->y[0], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
+        										feat->lPos[b]->x[1], feat->lPos[b]->y[1], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
+												&ix, &iy)){
+        									if(a==0)
+        										featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.01;
+        									else
+        										featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
+        									feat->feature->cross=true;
+        									featTmp->feature->cross=true;
+        								}
+        							}
+        						}else{
+        							if(feat->feature->direccion){//45º
+        								if( computeSegIntersection (featTmp->lPos[a]->x[1], featTmp->lPos[a]->y[1], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
+        										feat->lPos[b]->x[0], feat->lPos[b]->y[0], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
+												&ix, &iy)){
+        									if(a==0)
+        										featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.01;
+        									else
+        										featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
+        									feat->feature->cross=true;
+        									featTmp->feature->cross=true;
+        								}
+        							}else{
+        								if( computeSegIntersection (featTmp->lPos[a]->x[1], featTmp->lPos[a]->y[1], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
+        										feat->lPos[b]->x[1], feat->lPos[b]->y[1], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
+												&ix, &iy)){
+        									if(a==0)
+        										featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.01;
+        									else
+        										featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
+        									feat->feature->cross=true;
+        									featTmp->feature->cross=true;
+        								}
+        							}
+        						}
+        					}
+        				}
+        			}
+        		}
+        		fFeats->push_back (feat);
+        	}
+        	fFeatsTmp->push_back (featTmp);
+        }
+        for (i = 0;i < prob->nbft;i++) {
+        	featTmp = fFeatsTmp->pop_front();
+        	fFeats->push_back (featTmp);
+        }
+        delete fFeatsTmp;
+
+
 
         int idlp = 0;
         for (i = 0;i < prob->nbft;i++) { /* foreach feature into prob */
             feat = fFeats->pop_front();
-            feat->feature->cross=false;
 #ifdef _DEBUG_FULL_
             std::cout << "Feature:" << feat->feature->layer->name << "/" << feat->feature->uid << std::endl;
 #endif
@@ -839,81 +929,7 @@ namespace pal {
             fFeats->push_back (feat);
         }
 
-#ifdef _DEBUG_FULL_
-        std::cout << "Malloc problem...." << std::endl;
-#endif
 
-
-        LinkedList<Feats*> *fFeatsTmp = new LinkedList<Feats*> (ptrFeatsCompare);
-        Feats *featTmp;
-        int ii ;
-        for (i = 0;i < prob->nbft;i++) {
-        	featTmp = fFeats->pop_front();
-        	for ( ii = i;ii < prob->nbft-1;ii++) {
-        		feat = fFeats->pop_front();
-        		if (feat->feature->type == GEOS_POINT) {
-        			int a = 0;
-        			int b = 0;
-        			for ( b = 0;b < feat->nblp;b++)
-        			{
-        				if( (!(featTmp->feature->oPointx == feat->feature->oPointx && featTmp->feature->oPointy == feat->feature->oPointy))){
-        					double ix,  iy;
-        					if(featTmp->feature->direccion){//45º
-        						if(feat->feature->direccion){//45º
-        							if( computeSegIntersection (featTmp->lPos[a]->x[0], featTmp->lPos[a]->y[0], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
-        									feat->lPos[b]->x[0], feat->lPos[b]->y[0], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
-											&ix, &iy)){
-        								//        								if(feat->feature->stoped)
-        								//        									featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.2;
-        								//        								else
-        								feat->lPos[b]->cost=feat->lPos[b]->cost+0.1;
-        								feat->feature->cross=true;
-        								featTmp->feature->cross=true;
-        							}
-        							//        								if(dist_euc2d(featTmp->feature->oPointx, featTmp->feature->oPointy, feat->lPos[b]->x[0], feat->lPos[b]->y[0])< feat->feature->distlabel){
-        							//        									feat->lPos[b]->cost=feat->lPos[b]->cost+0.1;
-        							//        								}
-
-        						}else{
-        							if( computeSegIntersection (featTmp->lPos[a]->x[0], featTmp->lPos[a]->y[0], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
-        									feat->lPos[b]->x[1], feat->lPos[b]->y[1], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
-											&ix, &iy)){
-        								feat->lPos[b]->cost=feat->lPos[b]->cost+0.1;
-        								feat->feature->cross=true;
-        								featTmp->feature->cross=true;
-        							}
-        						}
-        					}else{
-        						if(feat->feature->direccion){//45º
-        							if( computeSegIntersection (featTmp->lPos[a]->x[1], featTmp->lPos[a]->y[1], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
-        									feat->lPos[b]->x[0], feat->lPos[b]->y[0], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
-											&ix, &iy)){
-        								feat->lPos[b]->cost=feat->lPos[b]->cost+0.1;
-        								feat->feature->cross=true;
-        								featTmp->feature->cross=true;
-        							}
-        						}else{
-        							if( computeSegIntersection (featTmp->lPos[a]->x[1], featTmp->lPos[a]->y[1], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
-        									feat->lPos[b]->x[1], feat->lPos[b]->y[1], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
-											&ix, &iy)){
-        								feat->lPos[b]->cost=feat->lPos[b]->cost+0.1;
-        								feat->feature->cross=true;
-        								featTmp->feature->cross=true;
-        							}
-        						}
-        					}
-        				}
-        			}
-        		}
-        		fFeats->push_back (feat);
-        	}
-        	fFeatsTmp->push_back (featTmp);
-        }
-        for (i = 0;i < prob->nbft;i++) {
-        	featTmp = fFeatsTmp->pop_front();
-        	fFeats->push_back (featTmp);
-        }
-        delete fFeatsTmp;
 
         idlp = 0;
         int nbOverlaps = 0;
