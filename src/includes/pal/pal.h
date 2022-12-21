@@ -80,6 +80,20 @@ namespace pal {
     /** Typedef for _Units enumeration */
     typedef enum _searchMethod SearchMethod;
 
+
+
+    /** Search method to use */
+    enum _posMethod {
+        ANGULAR_FLAG = 0,
+        ANGULAR_FLAG_CROSS_CHK = 1,
+        TOP_FLAG = 2,
+        TOP_CENTER = 3
+
+    };
+
+    /** Typedef for _Units enumeration */
+    typedef enum _posMethod PosMethod;
+
     /** The way to arrange labels against spatial entities
      *
      * \image html arrangement.png "Arrangement modes" width=7cm
@@ -138,7 +152,7 @@ namespace pal {
         int poly_p;
 
         SearchMethod searchMethod;
-
+        PosMethod  positionMethod;
         /*
          * POPMUSIC Tuning
          */
@@ -394,6 +408,9 @@ namespace pal {
          * @param method the method to use
          */
         void setSearch (SearchMethod method);
+
+        void setPosMethod (PosMethod pmethod);
+
 
         /**
          * \brief get the search method in use

@@ -1,6 +1,7 @@
 cmake_policy(SET CMP0048 NEW)
 
-add_compile_options(-O3  -use_fast_math)
+#add_compile_options(-O0 -g -lineinfo)
+add_compile_options(-O3 )
 
 project(libpal VERSION 0.2 LANGUAGES CXX)
 

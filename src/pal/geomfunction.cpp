@@ -366,7 +366,7 @@ namespace pal {
 
 
         denom = a1 * b2 - a2 * b1;
-         if ( qgsDoubleNear( denom, 0.0 ) )
+         if ( qgsDoubleNear( denom, 0.0 ) || denom==0)
          {
            return false;
          }

@@ -156,7 +156,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 
 
 #ifdef _DEBUG_
-        std::cout << "SetPosition (point) : " << layer->name << "/" << uid << std::endl;
+	std::cout << "SetPosition (point) : " << layer->name << "/" << uid << std::endl;
 #endif
 
 	int dpi = layer->pal->dpi;
@@ -171,221 +171,275 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 			scale, delta_width);
 
 	int nbp = layer->pal->point_p;
-	int distanceNbp = layer->pal->point_pl;
-//std::cout << "Nbp : " << nbp << std::endl;
-
-	int i, ii;
-//        int icost = 0;
-//        int inc = 2;
-
-	double alpha = alphaPAu;
-//        double beta = 2. * M_PI / (double)nbp; /* angle bw 2 pos */
-	double beta = 2. * M_PI / (double) nbp; /* angle bw 2 pos */
-
-// uncomment for Wolff 2 position model test on RailwayStation
-//if (nbp==2)
-//   beta = M_PI/2;
 
 	double distlabel = unit_convert(this->distlabel, pal::PIXEL,
 			layer->pal->map_unit, dpi, scale, delta_width);
 
 	double lx, ly; /* label pos */
+	bool center=false;
+	int nbpT=0;
+	/*	        ANGULAR_FLAG = 0,
+        ANGULAR_FLAG_CROSS_CHK = 1,
+        TOP_FLAG = 2,
+        TOP_CENTER = 3 =*/
+	switch (layer->pal->positionMethod) {
+	case ANGULAR_FLAG:
+	case ANGULAR_FLAG_CROSS_CHK:
+	{
 
-	/* various alpha */
-	double a90 = M_PI / 2.;
-	double a180 = M_PI;
-	double a270 = a180 + a90;
-	double a360 = 2. * M_PI;
+		int distanceNbp = layer->pal->point_pl;
+		int i, ii;
 
-	double gamma1, gamma2;
+		double alpha = alphaPAu;
+		double beta = 2. * M_PI / (double) nbp; /* angle bw 2 pos */
 
-	*lPos = new LabelPosition*[nbp * distanceNbp];
-//        std::cout << "Oups... alpha..  "<<alpha << std::endl;
+		/* various alpha */
+		double a90 = M_PI / 2.;
+		double a180 = M_PI;
+		double a270 = a180 + a90;
+		double a360 = 2. * M_PI;
 
-//TODO PAu
-//        if(alpha==0){
-//            if(direccion)
-//                alpha = M_PI / 4;
-//            else
-//                alpha =  a90 + M_PI / 4;
-//        }
-	float extraCost = 1.;
-	if (stoped)
-		extraCost = (float) nbp * distanceNbp;
+		double gamma1, gamma2;
 
-	bool direcionBis = true;
-	if (direccion) {
-		if (!((alpha > M_PI / 4.) && (alpha < M_PI + M_PI / 4.)))
-			direcionBis = false;
-	} else {
-		if (!((alpha > a90 + M_PI / 4.) && (alpha < M_PI + a90 + M_PI / 4.)))
-			direcionBis = false;
-	}
-// std::cout <<std::endl<< "################################### "  << std::endl;
-	for (ii = 1; ii <= distanceNbp; ii++) {
-		int icost = 0;
-		int inc = 2;
+		*lPos = new LabelPosition*[nbp * distanceNbp];
 
-		if (distlabel > 0) {
-			gamma1 = atan2(yrm / 2., distlabel * (double) (ii + ((ii -1)*2)) + xrm / 2.);
-			gamma2 = atan2(xrm / 2., distlabel * (double) (ii + ((ii -1)*2)) + yrm / 2.);
+		float extraCost = 1.;
+		if (stoped)
+			extraCost = (float) nbp * distanceNbp;
+
+		bool direcionBis = true;
+		if (direccion) {
+			if (!((alpha > M_PI / 4.) && (alpha < M_PI + M_PI / 4.)))
+				direcionBis = false;
 		} else {
-			gamma1 = gamma2 = a90 / 3.0;
+			if (!((alpha > a90 + M_PI / 4.) && (alpha < M_PI + a90 + M_PI / 4.)))
+				direcionBis = false;
 		}
+		for (ii = 1; ii <= distanceNbp; ii++) {
+			int icost = 0;
+			int inc = 2;
 
-		if (gamma1 > a90 / 3.0)
-			gamma1 = a90 / 3.0;
-
-		if (gamma2 > a90 / 3.0)
-			gamma2 = a90 / 3.0;
-
-		if (gamma1 == 0 || gamma2 == 0) {
-			std::cout << "Oups... label size error..." << std::endl;
-		}
-
-//        for (i = 0, alpha = M_PI / 4;i < nbp;i++, alpha += beta) {
-		for (i = 0; i < nbp;
-				i++, (direcionBis ? alpha -= beta : alpha += beta)) {
-			lx = x;
-			ly = y;
-
-			if (alpha > a360)
-				alpha -= a360;
-			if (alpha < 0)
-				alpha += a360;
-
-			if (alpha < gamma1 || alpha > a360 - gamma1) {     // on the right
-				lx += distlabel * (double) (ii + ((ii -1)*2));
-				double iota = (alpha + gamma1);
-				if (iota > a360 - gamma1)
-					iota -= a360;
-
-				//ly += -yrm/2.0 + tan(alpha)*(distlabel + xrm/2);
-				ly += -yrm + yrm * iota / (2. * gamma1);
-			} else if (alpha < a90 - gamma2) {     // top-right
-				lx += distlabel * (double) (ii + ((ii -1)*2)) * cos(alpha);
-				ly += distlabel * (double) (ii + ((ii -1)*2)) * sin(alpha);
-			} else if (alpha < a90 + gamma2) {     // top
-												   //lx += -xrm/2.0 - tan(alpha+a90)*(distlabel + yrm/2);
-				lx += -xrm * (alpha - a90 + gamma2) / (2. * gamma2);
-				ly += distlabel * (double) (ii + ((ii -1)*2));
-			} else if (alpha < a180 - gamma1) {     // top left
-				lx += distlabel * (double) (ii + ((ii -1)*2)) * cos(alpha) - xrm;
-				ly += distlabel * (double) (ii + ((ii -1)*2)) * sin(alpha);
-			} else if (alpha < a180 + gamma1) {     // left
-				lx += -distlabel * (double) (ii + ((ii -1)*2)) - xrm;
-				//ly += -yrm/2.0 - tan(alpha)*(distlabel + xrm/2);
-				ly += -(alpha - a180 + gamma1) * yrm / (2. * gamma1);
-			} else if (alpha < a270 - gamma2) {     // down - left
-				lx += distlabel * (double) (ii + ((ii -1)*2)) * cos(alpha) - xrm;
-				ly += distlabel * (double) (ii + ((ii -1)*2)) * sin(alpha) - yrm;
-			} else if (alpha < a270 + gamma2) {     // down
-				ly += -distlabel * (double) (ii + ((ii -1)*2)) - yrm;
-				//lx += -xrm/2.0 + tan(alpha+a90)*(distlabel + yrm/2);
-				lx += -xrm + (alpha - a270 + gamma2) * xrm / (2. * gamma2);
-			} else if (alpha < a360) {
-				lx += distlabel * ((double) (ii + ((ii -1)*2))) * cos(alpha);
-				ly += distlabel * (double) (ii + ((ii -1)*2)) * sin(alpha) - yrm;
+			if (distlabel > 0) {
+				gamma1 = atan2(yrm / 2., distlabel * (double) (ii + ((ii -1)*2)) + xrm / 2.);
+				gamma2 = atan2(xrm / 2., distlabel * (double) (ii + ((ii -1)*2)) + yrm / 2.);
 			} else {
-				std::cout << "Oups... alpha..  " << alpha << std::endl;
-
+				gamma1 = gamma2 = a90 / 3.0;
 			}
 
-			double cost;
+			if (gamma1 > a90 / 3.0)
+				gamma1 = a90 / 3.0;
 
-			if (nbp == 1) {
-				cost = 0.0001 * (double) ii;
-			} else {
-				if (i == 1 ) {
-					if (direcionBis) {
-						if ((direccion
-								&& !((( M_PI / 4. - beta / 2. + a360)
-										<= (alpha + beta + a360))
-										&& ((alpha + beta + a360)
-												<= (M_PI / 4. + beta / 2. + a360))))
-								|| (!direccion
-										&& !(((a90 + M_PI / 4. - beta / 2.
-												+ a360) <= (alpha + beta + a360))
-												&& ((alpha + beta + a360)
-														<= (a90 + M_PI / 4.
-																+ beta / 2.
-																+ a360)))))
-							(ii == 1 && !cross) ?
-									cost = 0.0001 :
-									cost = (0.0002
-											+ (extraCost * 0.0020
-													* double(icost)
-													/ double(nbp - 1)))
-											+ ((extraCost * 0.0020 * double(nbp)
-													/ double(nbp - 1))
-													* (double) (ii - 1));
-						else
-							cost = (0.0002
-									+ (extraCost * 0.0020 * double(icost)
-											/ double(nbp - 1)))
-									+ ((extraCost * 0.0020 * double(nbp)
-											/ double(nbp - 1))
-											* (double) (ii - 1));
-					} else {
-						if ((direccion
-								&& !((( M_PI / 4. - beta / 2. + a360)
-										<= (alpha - beta + a360))
-										&& ((alpha - beta + a360)
-												<= (M_PI / 4. + beta / 2. + a360))))
-								|| (!direccion
-										&& !(((a90 + M_PI / 4. - beta / 2.
-												+ a360) <= (alpha - beta + a360))
-												&& ((alpha - beta + a360)
-														<= (a90 + M_PI / 4.
-																+ beta / 2.
-																+ a360)))))
-							(ii == 1 && !cross)?
-									cost = 0.0001 :
-									cost = (0.0002
-											+ (extraCost * 0.0020
-													* double(icost)
-													/ double(nbp - 1)))
-											+ ((extraCost * 0.0020 * double(nbp)
-													/ double(nbp - 1))
-													* (double) (ii - 1));
-						else
-							cost = (0.0002
-									+ (extraCost * 0.0020 * double(icost)
-											/ double(nbp - 1)))
-									+ ((extraCost * 0.0020 * double(nbp)
-											/ double(nbp - 1))
-											* (double) (ii - 1));
+			if (gamma2 > a90 / 3.0)
+				gamma2 = a90 / 3.0;
 
-					}
+			if (gamma1 == 0 || gamma2 == 0) {
+				std::cout << "Oups... label size error..." << std::endl;
+			}
 
+			for (i = 0; i < nbp;
+					i++, (direcionBis ? alpha -= beta : alpha += beta)) {
+				lx = x;
+				ly = y;
+
+				if (alpha > a360)
+					alpha -= a360;
+				if (alpha < 0)
+					alpha += a360;
+
+				if (alpha < gamma1 || alpha > a360 - gamma1) {     // on the right
+					lx += distlabel * (double) (ii + ((ii -1)*2));
+					double iota = (alpha + gamma1);
+					if (iota > a360 - gamma1)
+						iota -= a360;
+
+					ly += -yrm + yrm * iota / (2. * gamma1);
+				} else if (alpha < a90 - gamma2) {     // top-right
+					lx += distlabel * (double) (ii + ((ii -1)*2)) * cos(alpha);
+					ly += distlabel * (double) (ii + ((ii -1)*2)) * sin(alpha);
+				} else if (alpha < a90 + gamma2) {     // top
+					lx += -xrm * (alpha - a90 + gamma2) / (2. * gamma2);
+					ly += distlabel * (double) (ii + ((ii -1)*2));
+				} else if (alpha < a180 - gamma1) {     // top left
+					lx += distlabel * (double) (ii + ((ii -1)*2)) * cos(alpha) - xrm;
+					ly += distlabel * (double) (ii + ((ii -1)*2)) * sin(alpha);
+				} else if (alpha < a180 + gamma1) {     // left
+					lx += -distlabel * (double) (ii + ((ii -1)*2)) - xrm;
+					ly += -(alpha - a180 + gamma1) * yrm / (2. * gamma1);
+				} else if (alpha < a270 - gamma2) {     // down - left
+					lx += distlabel * (double) (ii + ((ii -1)*2)) * cos(alpha) - xrm;
+					ly += distlabel * (double) (ii + ((ii -1)*2)) * sin(alpha) - yrm;
+				} else if (alpha < a270 + gamma2) {     // down
+					ly += -distlabel * (double) (ii + ((ii -1)*2)) - yrm;
+					lx += -xrm + (alpha - a270 + gamma2) * xrm / (2. * gamma2);
+				} else if (alpha < a360) {
+					lx += distlabel * ((double) (ii + ((ii -1)*2))) * cos(alpha);
+					ly += distlabel * (double) (ii + ((ii -1)*2)) * sin(alpha) - yrm;
 				} else {
-					cost = (0.0002
-							+ (extraCost * 0.0020 * double(icost)
-									/ double(nbp - 1)))
-							+ ((extraCost * 0.0020 * double(nbp)
-									/ double(nbp - 1)) * (double) (ii - 1));
+					std::cout << "Oups... alpha..  " << alpha << std::endl;
 				}
-			}
-			(*lPos)[i + ((ii - 1) * nbp)] = new LabelPosition(
-					i + ((ii - 1) * nbp), lx, ly, xrm, yrm, 0, alpha, cost,
-					this);
-//			if(cost >1.)
-//			 std::cout << ", " << cost <<std::endl;
-			icost += inc;
 
-			if (icost == nbp) {
-				icost = nbp - 1;
-				inc = -2;
-			} else if (icost > nbp) {
-				icost = nbp - 2;
-				inc = -2;
-			}
+				double cost;
 
+				if (nbp == 1) {
+					cost = 0.0001 * (double) ii;
+				} else {
+					if (i == 1 ) {
+						if (direcionBis) {
+							if ((direccion
+									&& !((( M_PI / 4. - beta / 2. + a360)
+											<= (alpha + beta + a360))
+											&& ((alpha + beta + a360)
+													<= (M_PI / 4. + beta / 2. + a360))))
+									|| (!direccion
+											&& !(((a90 + M_PI / 4. - beta / 2.
+													+ a360) <= (alpha + beta + a360))
+													&& ((alpha + beta + a360)
+															<= (a90 + M_PI / 4.
+																	+ beta / 2.
+																	+ a360)))))
+								(ii == 1 && !cross) ?
+										cost = 0.0001 :
+										cost = (0.0002
+												+ (extraCost * 0.0020
+														* double(icost)
+							/ double(nbp - 1)))
+							+ ((extraCost * 0.0020 * double(nbp)
+							/ double(nbp - 1))
+									* (double) (ii - 1));
+							else
+								cost = (0.0002
+										+ (extraCost * 0.0020 * double(icost)
+							/ double(nbp - 1)))
+							+ ((extraCost * 0.0020 * double(nbp)
+							/ double(nbp - 1))
+									* (double) (ii - 1));
+						} else {
+							if ((direccion
+									&& !((( M_PI / 4. - beta / 2. + a360)
+											<= (alpha - beta + a360))
+											&& ((alpha - beta + a360)
+													<= (M_PI / 4. + beta / 2. + a360))))
+									|| (!direccion
+											&& !(((a90 + M_PI / 4. - beta / 2.
+													+ a360) <= (alpha - beta + a360))
+													&& ((alpha - beta + a360)
+															<= (a90 + M_PI / 4.
+																	+ beta / 2.
+																	+ a360)))))
+								(ii == 1 && !cross)?
+										cost = 0.0001 :
+										cost = (0.0002
+												+ (extraCost * 0.0020
+														* double(icost)
+							/ double(nbp - 1)))
+							+ ((extraCost * 0.0020 * double(nbp)
+							/ double(nbp - 1))
+									* (double) (ii - 1));
+							else
+								cost = (0.0002
+										+ (extraCost * 0.0020 * double(icost)
+							/ double(nbp - 1)))
+							+ ((extraCost * 0.0020 * double(nbp)
+							/ double(nbp - 1))
+									* (double) (ii - 1));
+
+						}
+
+					} else {
+						cost = (0.0002
+								+ (extraCost * 0.0020 * double(icost)
+						/ double(nbp - 1)))
+									+ ((extraCost * 0.0020 * double(nbp)
+						/ double(nbp - 1)) * (double) (ii - 1));
+					}
+				}
+				(*lPos)[i + ((ii - 1) * nbp)] = new LabelPosition(
+						i + ((ii - 1) * nbp), lx, ly, xrm, yrm, 0, alpha, cost,
+						this);
+
+				icost += inc;
+
+				if (icost == nbp) {
+					icost = nbp - 1;
+					inc = -2;
+				} else if (icost > nbp) {
+					icost = nbp - 2;
+					inc = -2;
+				}
+
+			}
 		}
+		nbpT= nbp * distanceNbp;
 	}
-// std::cout <<std::endl<< "################################### "  << std::endl;
-//         alphaPAu = alpha;
-	return nbp * distanceNbp;
+	break;
+	case TOP_CENTER:
+		 center=true;
+	case TOP_FLAG:
+	{
+		int startp=alphaPAu*1000.;
+		if(startp>nbp)
+			startp=0;
+
+		float extraCost = 1.;
+		if (stoped)
+			extraCost = (float) nbp ;
+
+		int i=0;
+		*lPos = new LabelPosition*[nbp];
+		if(center){
+			lx = x-xrm/2;}
+		else{
+			if (direccion)
+				lx = x;
+			else
+				lx = x-xrm;
+		}
+		double cost;
+		int ii;
+		for ( ii = startp; ii >0;
+				ii--){
+
+			ly = y + distlabel +ii * yrm;
+
+			if(ii==startp-1)
+				cost = (0.0001 *extraCost);
+			else
+				cost = (0.0002 +0.0020 *extraCost*  double(i) /double(nbp+1 ));
+//						std::cout << "1TOP i "<< i  << " cost " <<cost<<" ly "<<  ly<<std::endl;
+			(*lPos)[i] = new LabelPosition(
+					i , lx, ly, xrm, yrm, 0, i/1000., cost,
+					this);
+			i++;
+		}
+		for ( ii = 0; ii < nbp-startp;
+				ii++){
+
+			ly = y + distlabel + (startp+1)*yrm + yrm*ii;
+
+			cost = (0.0002 +0.0020* extraCost* double(ii+1) /double(nbp));
+//						std::cout << "2TOP i "<< i  << " cost " <<cost<<" ly "<<  ly<<std::endl;
+			(*lPos)[i] = new LabelPosition(
+					i , lx, ly, xrm, yrm, 0, (double)i/1000., cost,
+					this);
+			i++;
+		}
+		ly = y - distlabel - yrm;
+
+			cost = (0.0002 +0.0021* extraCost);
+//						std::cout << "3TOP i "<< i  << " cost " <<cost<<" ly "<<  ly<<std::endl;
+			(*lPos)[i] = new LabelPosition(
+					i , lx, ly, xrm, yrm, 0, (double)i/1000., cost,
+					this);
+
+		nbpT= nbp+1;
+
+	}
+		break;
+	default:
+		std::cout << "Not implemented "  << std::endl;
+		break;
+	}
+	return nbpT;
 }
 
 // TODO work with squared distance by remonving call to sqrt or dist_euc2d

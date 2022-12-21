@@ -52,6 +52,7 @@ namespace pal {
 
     LabelPosition::LabelPosition (int id, double x1, double y1, double w, double h, double alpha,  double alphaPAu, double cost, Feature *feature) : id (id), cost (cost), /*workingCost (0),*/ alpha (alpha), alphaPAu (alphaPAu),feature (feature), nbOverlap (0), w (w), h (h) {
 
+    	probFeat=0;
 
         // alpha take his value bw 0 and 2*pi rad
         while (this->alpha > 2*M_PI)

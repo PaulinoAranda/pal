@@ -55,18 +55,18 @@ namespace pal {
      * \brief For translating feature from GEOS to Pal
      */
     typedef struct Feat {
-        const GEOSGeometry *geom;
-        const char *id;
+        const GEOSGeometry *geom=NULL;
+        const char *id=NULL;
         int type;
 
         int nbPoints;
-        double *x;
-        double *y;
+        double *x=NULL;
+        double *y=NULL;
 
         double minmax[4]; // {xmin, ymin, xmax, ymax}
 
         int nbHoles;
-        PointSet **holes;
+        PointSet **holes=NULL;
 
     } Feat;
 
@@ -77,11 +77,11 @@ namespace pal {
     LinkedList<Feat*> * splitGeom (GEOSGeometry *the_geom, const char *geom_id);
 
     typedef struct _feats {
-        Feature *feature;
-        PointSet *shape;
-        double priority;
-        int nblp;
-        LabelPosition **lPos;
+        Feature *feature=NULL;
+        PointSet *shape=NULL;
+        double priority=0;
+        int nblp=0;
+        LabelPosition **lPos=NULL;
     } Feats;
 
 
