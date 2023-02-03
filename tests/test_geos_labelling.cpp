@@ -744,6 +744,7 @@ void testSquares(pal::Pal *pal, pal::Layer *layer, pal::Layer *layer2,
 	for (int var = 0; var < 100; ++var) {
 		std::cout << "--------------" << var << "\n";
 		std::list<pal::Label*> *labels = pal->labeller(1., bbox, &stats, true);
+		std::cout << "2-------------" << var << "\n";
 		for (auto &front : *labels) {
 			if (std::string(front->getLayerName()).compare("main") == 0 &&
 					std::string(front->getFeatureId()).compare("MOVE") == 0) {
@@ -861,8 +862,9 @@ TEST_CASE("Geos Labelling", "Geos labelling")
 	pal::Pal pal;
 	pal.setSearch (pal::SearchMethod::CHAIN);
 
-	pal.setPointP (8);
-	pal.setPointPL(3);
+	pal.setPointP (10);
+	pal.setPointPL(1);
+	pal.setPosMethod(pal::PosMethod::TOP_FLAG);
 
 	pal.setMapUnit (pal::Units::PIXEL);
 
@@ -875,8 +877,9 @@ TEST_CASE("Geos Labelling", "Geos labelling")
 	pal::Layer * layerA = pal.addLayer ("mainA", ( double)-1, ( double)-1, pal::P_HORIZ,
 			pal::Units::PIXEL, ( double)0.1, true, true, false);
 
+	std::cout << " testSquares" << "\n";
 	testSquares(&pal, layer, layer2,layerA, 2);
-
+	std::cout << "testSquares END" << "\n";
 	sleep(1);
 	/*
 	 BENCHMARK("Test 2x2 labelling"){

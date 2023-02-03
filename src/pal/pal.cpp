@@ -794,7 +794,7 @@ namespace pal {
 													if(a==0)
 														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
 													else
-														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.0001;
+														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
 													feat->feature->cross=true;
 													featTmp->feature->cross=true;
 												}
@@ -809,7 +809,7 @@ namespace pal {
 													if(a==0)
 														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
 													else
-														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.0001;
+														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
 													feat->feature->cross=true;
 													featTmp->feature->cross=true;
 												}
@@ -822,7 +822,7 @@ namespace pal {
 													if(a==0)
 														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
 													else
-														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.0001;
+														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
 													feat->feature->cross=true;
 													featTmp->feature->cross=true;
 												}
@@ -833,7 +833,7 @@ namespace pal {
 													if(a==0)
 														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
 													else
-														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.0001;
+														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
 													feat->feature->cross=true;
 													featTmp->feature->cross=true;
 												}

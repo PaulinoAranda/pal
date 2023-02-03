@@ -49,6 +49,10 @@
 #include "simplemutex.h"
 #include "util.h"
 
+#include <functional>
+#include <string>
+#include <climits>
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -61,6 +65,10 @@ Feature::Feature(Feat *feat, Layer *layer, int part, int nPart,
 
 	this->uid = new char[strlen(feat->id) + 1];
 	strcpy(this->uid, feat->id);
+
+	std::hash<std::string> hash_fn;
+	std::size_t str_hash = hash_fn(std::string(this->uid));
+	hash=1.+(((double)str_hash/(double)SIZE_MAX)/1000.);
 
 	label_x = -1;
 	label_y = -1;
@@ -163,6 +171,10 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 
 	double xrm;
 	double yrm;
+
+
+
+//	    std::cout <<  "str_hash " << str_hash<< " UINT_MAX "<< SIZE_MAX<<" fhash " << fhash <<" sizeof "<< sizeof(str_hash)<<std::endl;
 
 	xrm = unit_convert(label_x, layer->label_unit, layer->pal->map_unit, dpi,
 			scale, delta_width);
@@ -353,6 +365,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 						/ double(nbp - 1)) * (double) (ii - 1));
 					}
 				}
+				cost=cost*hash;
 				(*lPos)[i + ((ii - 1) * nbp)] = new LabelPosition(
 						i + ((ii - 1) * nbp), lx, ly, xrm, yrm, 0, alpha, cost,
 						this);
@@ -376,7 +389,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 		 center=true;
 	case TOP_FLAG:
 	{
-		int startp=alphaPAu*1000.;
+		int startp=(int)(alphaPAu*1000.);
 		if(startp>nbp)
 			startp=0;
 
@@ -406,6 +419,8 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 			else
 				cost = (0.0002 +0.0020 *extraCost*  double(i) /double(nbp+1 ));
 //						std::cout << "1TOP i "<< i  << " cost " <<cost<<" ly "<<  ly<<std::endl;
+			cost=cost*hash;
+
 			(*lPos)[i] = new LabelPosition(
 					i , lx, ly, xrm, yrm, 0, i/1000., cost,
 					this);
@@ -418,6 +433,8 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 
 			cost = (0.0002 +0.0020* extraCost* double(ii+1) /double(nbp));
 //						std::cout << "2TOP i "<< i  << " cost " <<cost<<" ly "<<  ly<<std::endl;
+			cost=cost*hash;
+
 			(*lPos)[i] = new LabelPosition(
 					i , lx, ly, xrm, yrm, 0, (double)i/1000., cost,
 					this);
@@ -427,6 +444,8 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 
 			cost = (0.0002 +0.0021* extraCost);
 //						std::cout << "3TOP i "<< i  << " cost " <<cost<<" ly "<<  ly<<std::endl;
+			cost=cost*hash;
+
 			(*lPos)[i] = new LabelPosition(
 					i , lx, ly, xrm, yrm, 0, (double)i/1000., cost,
 					this);

@@ -93,6 +93,8 @@ namespace pal {
         char *uid;
         Layer *layer;
 
+        double hash;
+
         int distlabel;
 
         GEOSGeometry *the_geom;
