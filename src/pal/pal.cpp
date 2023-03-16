@@ -135,12 +135,16 @@ namespace pal {
 
 
     void Pal::removeLayer (Layer *layer) {
-        lyrsMutex->lock();
-        if (layer) {
-            layers->remove (layer);
-            delete layer;
-        }
-        lyrsMutex->unlock();
+    	try {
+    		lyrsMutex->lock();
+    		if (layer) {
+    			layers->remove (layer);
+    			delete layer;
+    		}
+    		lyrsMutex->unlock();
+    	} catch (...) {
+    		lyrsMutex->unlock();
+    	}
     }
 
 
@@ -662,60 +666,69 @@ namespace pal {
 
         std::list<char*> *labLayers = new std::list<char*>();
 
-        lyrsMutex->lock();
-        for (i = 0;i < nbLayers;i++) {
-            for (std::list<Layer*>::iterator it = layers->begin(); it != layers->end();it++) { // iterate on pal->layers
-                layer = *it;
-                // Only select those who are active and labellable (with scale constraint) or those who are active and which must be treated as obstaclewhich must be treated as obstacle
-                if (layer->active
-                        && (layer->obstacle || (layer->toLabel && layer->isScaleValid (scale)))) {
+        try {
 
-                    // check if this selected layers has been selected by user
-                    if (strcmp (layersName[i], layer->name) == 0) {
-                        context->layer = layer;
-                        context->priority = layersFactor[i];
-                        // lookup for feature (and generates candidates list)
+        	lyrsMutex->lock();
+        	for (i = 0;i < nbLayers;i++) {
+        		for (std::list<Layer*>::iterator it = layers->begin(); it != layers->end();it++) { // iterate on pal->layers
+        			layer = *it;
+        			// Only select those who are active and labellable (with scale constraint) or those who are active and which must be treated as obstaclewhich must be treated as obstacle
+        			if (layer->active
+        					&& (layer->obstacle || (layer->toLabel && layer->isScaleValid (scale)))) {
+
+        				// check if this selected layers has been selected by user
+        				if (strcmp (layersName[i], layer->name) == 0) {
+        					context->layer = layer;
+        					context->priority = layersFactor[i];
+        					// lookup for feature (and generates candidates list)
 
 #ifdef _EXPORT_MAP_
-                        *svgmap << "<g inkscape:label=\"" << layer->name << "\"" << std::endl
-                        <<  "    inkscape:groupmode=\"layer\"" << std::endl
-                        <<  "    id=\"" << layer->name << "\">" << std::endl << std::endl;
+        					*svgmap << "<g inkscape:label=\"" << layer->name << "\"" << std::endl
+        							<<  "    inkscape:groupmode=\"layer\"" << std::endl
+									<<  "    id=\"" << layer->name << "\">" << std::endl << std::endl;
 #endif
 
-//                        std::cout<< " layer point_p "<< layer->pal->point_p << " point_pl "<< layer->pal->point_pl<<std::endl;
-
-                        context->layer->modMutex->lock();
-                        context->layer->rtree->Search (amin, amax, extractFeatCallback, (void*) context);
-                        context->layer->modMutex->unlock();
+        					//                        std::cout<< " layer point_p "<< layer->pal->point_p << " point_pl "<< layer->pal->point_pl<<std::endl;
+        					try {
+        						context->layer->modMutex->lock();
+        						context->layer->rtree->Search (amin, amax, extractFeatCallback, (void*) context);
+        						context->layer->modMutex->unlock();
+        					} catch (...) {
+        						context->layer->modMutex->unlock();
+        					}
 
 #ifdef _EXPORT_MAP_
-                        *svgmap  << "</g>" << std::endl << std::endl;
+        					*svgmap  << "</g>" << std::endl << std::endl;
 #endif
 
 #ifdef _VERBOSE_
-                        std::cout << "Layer's name: " << layer->getName() << std::endl;
-                        std::cout << "     scale range: " << layer->getMinScale() << "->" << layer->getMaxScale() << std::endl;
-                        std::cout << "     active:" << layer->isToLabel() << std::endl;
-                        std::cout << "     obstacle:" << layer->isObstacle() << std::endl;
-                        std::cout << "     toLabel:" << layer->isToLabel() << std::endl;
-                        std::cout << "     # features: " << layer->getNbFeatures() << std::endl;
-                        std::cout << "     # extracted features: " << context->fFeats->size() - oldNbft << std::endl;
+        					std::cout << "Layer's name: " << layer->getName() << std::endl;
+        					std::cout << "     scale range: " << layer->getMinScale() << "->" << layer->getMaxScale() << std::endl;
+        					std::cout << "     active:" << layer->isToLabel() << std::endl;
+        					std::cout << "     obstacle:" << layer->isObstacle() << std::endl;
+        					std::cout << "     toLabel:" << layer->isToLabel() << std::endl;
+        					std::cout << "     # features: " << layer->getNbFeatures() << std::endl;
+        					std::cout << "     # extracted features: " << context->fFeats->size() - oldNbft << std::endl;
 #endif
-                        if (context->fFeats->size() - oldNbft > 0) {
-                            char *name = new char[strlen (layer->getName()) +1];
-                            strcpy (name, layer->getName());
-                            labLayers->push_back (name);
-                        }
-                        oldNbft = context->fFeats->size();
+        					if (context->fFeats->size() - oldNbft > 0) {
+        						char *name = new char[strlen (layer->getName()) +1];
+        						strcpy (name, layer->getName());
+        						labLayers->push_back (name);
+        					}
+        					oldNbft = context->fFeats->size();
 
 
-                        break;
-                    }
-                }
-            }
-        }
-        delete context;
-        lyrsMutex->unlock();
+        					break;
+        				}
+        			}
+        		}
+        	}
+        	delete context;
+        	lyrsMutex->unlock();
+
+        } catch (...) {
+	        lyrsMutex->unlock();
+		}
 
 
         prob->nbLabelledLayers = labLayers->size();
@@ -770,14 +783,19 @@ namespace pal {
 			Feats *featTmp;
 			int ii ;
 			int fFeatsSize1=fFeats->size();
+			for (i = 0;i < fFeatsSize1;++i) {
+				featTmp= fFeats->pop_front();
+				fFeatsTmp->push_back (featTmp);
+				fFeats->push_back (featTmp);
+			}
 
 			for (i = 0;i < fFeatsSize1;++i) {
-				featTmp = fFeats->pop_front();
+				featTmp = fFeatsTmp->pop_front();
 				if (featTmp && featTmp->feature->type == GEOS_POINT) {
 					int fFeatsSize=fFeats->size();
 					for ( ii = 0;ii <  fFeatsSize;++ii) {
 						feat = fFeats->pop_front();
-						if (feat && feat->feature->type == GEOS_POINT) {
+						if (i!=ii && feat && feat->feature->type == GEOS_POINT) {
 							int a = 0;
 							for ( a = 0;a < featTmp->nblp;++a)
 							{
@@ -792,10 +810,10 @@ namespace pal {
 														feat->lPos[b]->x[0], feat->lPos[b]->y[0], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
 														&ix, &iy)){
 													if(a==0)
-														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
+														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
 													else
-														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
-													feat->feature->cross=true;
+														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
+//													feat->feature->cross=true;
 													featTmp->feature->cross=true;
 												}
 												//        								if(dist_euc2d(featTmp->feature->oPointx, featTmp->feature->oPointy, feat->lPos[b]->x[0], feat->lPos[b]->y[0])< feat->feature->distlabel){
@@ -807,10 +825,10 @@ namespace pal {
 														feat->lPos[b]->x[1], feat->lPos[b]->y[1], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
 														&ix, &iy)){
 													if(a==0)
-														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
+														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
 													else
-														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
-													feat->feature->cross=true;
+														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
+//													feat->feature->cross=true;
 													featTmp->feature->cross=true;
 												}
 											}
@@ -820,10 +838,10 @@ namespace pal {
 														feat->lPos[b]->x[0], feat->lPos[b]->y[0], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
 														&ix, &iy)){
 													if(a==0)
-														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
+														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
 													else
-														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
-													feat->feature->cross=true;
+														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
+//													feat->feature->cross=true;
 													featTmp->feature->cross=true;
 												}
 											}else{
@@ -831,10 +849,10 @@ namespace pal {
 														feat->lPos[b]->x[1], feat->lPos[b]->y[1], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
 														&ix, &iy)){
 													if(a==0)
-														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
+														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
 													else
-														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.001;
-													feat->feature->cross=true;
+														featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
+//													feat->feature->cross=true;
 													featTmp->feature->cross=true;
 												}
 											}
@@ -846,12 +864,12 @@ namespace pal {
 						fFeats->push_back (feat);
 					}
 				}
-				fFeatsTmp->push_back (featTmp);
+//				fFeatsTmp->push_back (featTmp);
 			}
-			for (i = 0;i < prob->nbft;i++) {
-				featTmp = fFeatsTmp->pop_front();
-				fFeats->push_back (featTmp);
-			}
+//			for (i = 0;i < prob->nbft;i++) {
+//				featTmp = fFeatsTmp->pop_front();
+//				fFeats->push_back (featTmp);
+//			}
 			delete fFeatsTmp;
 
         }
@@ -1025,21 +1043,27 @@ namespace pal {
         std::cout << "LABELLER (active)" << std::endl;
 #endif
         int i;
+        int nbLayers;
+        char **layersName;
+        double *priorities;
+        try {
+        	lyrsMutex->lock();
+        	nbLayers = layers->size();
 
-        lyrsMutex->lock();
-        int nbLayers = layers->size();
-
-        char **layersName = new char*[nbLayers];
-        double *priorities = new double[nbLayers];
-        Layer *layer;
-        i = 0;
-        for (std::list<Layer*>::iterator it = layers->begin(); it != layers->end();it++) {
-            layer = *it;
-            layersName[i] = layer->name;
-            priorities[i] = layer->defaultPriority;
-            i++;
+        	layersName = new char*[nbLayers];
+        	priorities = new double[nbLayers];
+        	Layer *layer;
+        	i = 0;
+        	for (std::list<Layer*>::iterator it = layers->begin(); it != layers->end();it++) {
+        		layer = *it;
+        		layersName[i] = layer->name;
+        		priorities[i] = layer->defaultPriority;
+        		i++;
+        	}
+        	lyrsMutex->unlock();
+        } catch (...) {
+        	lyrsMutex->unlock();
         }
-        lyrsMutex->unlock();
 
         std::list<Label*> * solution = labeller (nbLayers, layersName, priorities, scale, bbox, stats, displayAll);
 

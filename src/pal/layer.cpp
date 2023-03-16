@@ -393,6 +393,8 @@ void Layer::registerFeature(const char *geom_id, PalGeometry *userGeom,
 
 void Layer::unregisterFeature(const char *geom_id) {
 //	std::cout << "unregisterFeature " << std::endl;
+try {
+
 
 	modMutex->lock();
 	Cell<Feature*> **it = hashtable->find(geom_id);
@@ -445,6 +447,10 @@ void Layer::unregisterFeature(const char *geom_id) {
 	}
 
 	modMutex->unlock();
+} catch (...) {
+	modMutex->unlock();
+
+}
 }
 
 Cell<Feature*>* Layer::getFeatureIt(const char *geom_id) {
@@ -486,6 +492,8 @@ void Layer::setFeatureDistlabel(const char *geom_id, int distlabel) {
 		throw new PalException::UnknownFeature();
 	}
 	modMutex->unlock();
+
+
 }
 
 int Layer::getFeatureDistlabel(const char *geom_id) {

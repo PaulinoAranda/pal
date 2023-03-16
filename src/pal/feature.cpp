@@ -217,7 +217,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 
 		float extraCost = 1.;
 		if (stoped)
-			extraCost = (float) nbp * distanceNbp;
+			extraCost = (float) nbp * distanceNbp *2;
 
 		bool direcionBis = true;
 		if (direccion) {
@@ -365,7 +365,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 						/ double(nbp - 1)) * (double) (ii - 1));
 					}
 				}
-				cost=cost*hash;
+//				cost=cost*hash;
 				(*lPos)[i + ((ii - 1) * nbp)] = new LabelPosition(
 						i + ((ii - 1) * nbp), lx, ly, xrm, yrm, 0, alpha, cost,
 						this);
@@ -419,7 +419,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 			else
 				cost = (0.0002 +0.0020 *extraCost*  double(i) /double(nbp+1 ));
 //						std::cout << "1TOP i "<< i  << " cost " <<cost<<" ly "<<  ly<<std::endl;
-			cost=cost*hash;
+//			cost=cost*hash;
 
 			(*lPos)[i] = new LabelPosition(
 					i , lx, ly, xrm, yrm, 0, i/1000., cost,
@@ -433,7 +433,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 
 			cost = (0.0002 +0.0020* extraCost* double(ii+1) /double(nbp));
 //						std::cout << "2TOP i "<< i  << " cost " <<cost<<" ly "<<  ly<<std::endl;
-			cost=cost*hash;
+//			cost=cost*hash;
 
 			(*lPos)[i] = new LabelPosition(
 					i , lx, ly, xrm, yrm, 0, (double)i/1000., cost,
@@ -444,7 +444,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 
 			cost = (0.0002 +0.0021* extraCost);
 //						std::cout << "3TOP i "<< i  << " cost " <<cost<<" ly "<<  ly<<std::endl;
-			cost=cost*hash;
+//			cost=cost*hash;
 
 			(*lPos)[i] = new LabelPosition(
 					i , lx, ly, xrm, yrm, 0, (double)i/1000., cost,
@@ -975,51 +975,56 @@ int Feature::setPosition(double scale, LabelPosition ***lPos,
 }
 
 void Feature::fetchCoordinates() {
-	accessMutex->lock();
-	layer->pal->tmpTime -= clock();
-	if (!x && !y && userGeom != NULL) {
-		//std::cout << "fetch feat " << layer->name << "/" << uid << std::endl;
+	try {
 
-		the_geom = userGeom->getGeosGeometry();
-		if (the_geom != NULL) {
-			LinkedList<Feat*> *feats = splitGeom(the_geom, this->uid);
-			int id = 0;
-			while (feats->size() > 0) {
-				Feat *f = feats->pop_front();
-				if (id == this->part) {
-					x = f->x;
-					y = f->y;
-					int i;
-					for (i = 0; i < nbSelfObs; i++) {
-						selfObs[i]->x = f->holes[i]->x;
-						selfObs[i]->y = f->holes[i]->y;
-						f->holes[i]->x = NULL;
-						f->holes[i]->y = NULL;
-						delete f->holes[i];
-						selfObs[i]->holeOf = this;
+		accessMutex->lock();
+		layer->pal->tmpTime -= clock();
+		if (!x && !y && userGeom != NULL) {
+			//std::cout << "fetch feat " << layer->name << "/" << uid << std::endl;
+
+			the_geom = userGeom->getGeosGeometry();
+			if (the_geom != NULL) {
+				LinkedList<Feat*> *feats = splitGeom(the_geom, this->uid);
+				int id = 0;
+				while (feats->size() > 0) {
+					Feat *f = feats->pop_front();
+					if (id == this->part) {
+						x = f->x;
+						y = f->y;
+						int i;
+						for (i = 0; i < nbSelfObs; i++) {
+							selfObs[i]->x = f->holes[i]->x;
+							selfObs[i]->y = f->holes[i]->y;
+							f->holes[i]->x = NULL;
+							f->holes[i]->y = NULL;
+							delete f->holes[i];
+							selfObs[i]->holeOf = this;
+						}
+						if (f->holes)
+							delete[] f->holes;
+						delete f;
+					} else {
+						delete[] f->x;
+						delete[] f->y;
+						int i;
+						for (i = 0; i < f->nbHoles; i++)
+							delete f->holes[i];
+						if (f->holes)
+							delete[] f->holes;
+						delete f;
 					}
-					if (f->holes)
-						delete[] f->holes;
-					delete f;
-				} else {
-					delete[] f->x;
-					delete[] f->y;
-					int i;
-					for (i = 0; i < f->nbHoles; i++)
-						delete f->holes[i];
-					if (f->holes)
-						delete[] f->holes;
-					delete f;
-				}
 
-				id++;
+					id++;
+				}
+				delete feats;
 			}
-			delete feats;
 		}
+		currentAccess++;
+		layer->pal->tmpTime += clock();
+		accessMutex->unlock();
+	} catch (...) {
+		accessMutex->unlock();
 	}
-	currentAccess++;
-	layer->pal->tmpTime += clock();
-	accessMutex->unlock();
 }
 
 void Feature::deleteCoord() {
@@ -1039,14 +1044,18 @@ void Feature::deleteCoord() {
 }
 
 void Feature::releaseCoordinates() {
-	accessMutex->lock();
-//std::cout << "release (" << currentAccess << ")" << std::endl;
-	if (x && y && currentAccess == 1) {
-		deleteCoord();
-		userGeom->releaseGeosGeometry(the_geom);
-	}
-	currentAccess--;
-	accessMutex->unlock();
-}
+	try{
+		accessMutex->lock();
+		//std::cout << "release (" << currentAccess << ")" << std::endl;
+		if (x && y && currentAccess == 1) {
+			deleteCoord();
+			userGeom->releaseGeosGeometry(the_geom);
+		}
+		currentAccess--;
+		accessMutex->unlock();
 
-}     // end namespace pal
+	} catch (...) {
+		accessMutex->unlock();
+	}
+}
+}// end namespace pal
