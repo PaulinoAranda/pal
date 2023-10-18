@@ -197,6 +197,7 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 	switch (layer->pal->positionMethod) {
 	case ANGULAR_FLAG:
 	case ANGULAR_FLAG_CROSS_CHK:
+	case ANGULAR_FLAG_CROSS_CHK_SHORTLINE:
 	{
 
 		int distanceNbp = layer->pal->point_pl;
