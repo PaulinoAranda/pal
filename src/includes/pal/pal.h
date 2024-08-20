@@ -153,6 +153,7 @@ namespace pal {
 
         SearchMethod searchMethod;
         PosMethod  positionMethod;
+        bool enableFrezzeIfPosibleCrooss;
         /*
          * POPMUSIC Tuning
          */
@@ -411,6 +412,7 @@ namespace pal {
 
         void setPosMethod (PosMethod pmethod);
 
+        void setEnableFrezzeIfPosibleCrooss (bool enable);
 
         /**
          * \brief get the search method in use

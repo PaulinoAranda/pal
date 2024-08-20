@@ -98,6 +98,7 @@ namespace pal {
 
         searchMethod = CHAIN;
         positionMethod=ANGULAR_FLAG;
+        enableFrezzeIfPosibleCrooss=false;
 
         setSearch (CHAIN);
 
@@ -1346,6 +1347,11 @@ namespace pal {
     void Pal::setPosMethod (PosMethod pmethod){
     	positionMethod=pmethod;
     }
+
+    void Pal::setEnableFrezzeIfPosibleCrooss (bool enable){
+        enableFrezzeIfPosibleCrooss=enable;
+     }
+
 
 
     /**

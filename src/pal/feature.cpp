@@ -52,6 +52,7 @@
 #include <functional>
 #include <string>
 #include <climits>
+#include <cstdint>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -217,9 +218,14 @@ int Feature::setPositionForPoint(double x, double y, double scale,
 		*lPos = new LabelPosition*[nbp * distanceNbp];
 
 		float extraCost = 1.;
-		if (stoped)
+		if (stoped){
 			extraCost = (float) nbp * distanceNbp *2;
+			cross=true;
+		}else{
+		    if(!layer->pal->enableFrezzeIfPosibleCrooss)
+		        cross=false;
 
+		}
 		bool direcionBis = true;
 		if (direccion) {
 			if (!((alpha > M_PI / 4.) && (alpha < M_PI + M_PI / 4.)))
