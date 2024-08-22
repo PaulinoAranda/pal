@@ -4,7 +4,12 @@
 
 //#define CATCH_CONFIG_ENABLE_BENCHMARKING
 //#include <catch2/catch.hpp>
-#include <catch2/catch_all.hpp>
+#if __has_include("catch2/catch_all.hpp")
+#include "catch2/catch_all.hpp"
+#else
+#include "catch2/catch.hpp"
+#endif
+
 #include "Geom.h"
 #include "pal/palgeometry.h"
 #include "pal/pal.h"
