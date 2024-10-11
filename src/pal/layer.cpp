@@ -512,9 +512,10 @@ int Layer::getFeatureDistlabel(const char *geom_id) {
 	return ret;
 }
 
+
 //void Layer::setFeatureLabelSize (const char * geom_id, double label_x, double label_y, bool direccion) {
 void Layer::setFeatureLabelSize(const char *geom_id, double label_x,
-		double label_y, bool direccion, double alphaPAu, bool stoped) {
+		double label_y, bool direccion, double alphaPAu, double alphaPAuH, bool stoped) {
 	int i;
 
 	if (label_x < 0 || label_y < 0) {
@@ -545,7 +546,8 @@ void Layer::setFeatureLabelSize(const char *geom_id, double label_x,
 			feat->direccion = direccion;
 			feat->stoped = stoped;
 
-			feat->alphaPAu = alphaPAu;
+   feat->alphaPAu = alphaPAu;
+   feat->alphaPAuH = alphaPAuH;
 /*
 //			feat->userGeom->getGeosGeometry();
 
@@ -626,6 +628,13 @@ void Layer::setFeatureLabelSize(const char *geom_id, double label_x,
 	}
 	modMutex->unlock();
 }
+
+
+void Layer::setFeatureLabelSize(const char *geom_id, double label_x,
+  double label_y, bool direccion, double alphaPAu, bool stoped) {
+        this->setFeatureLabelSize(geom_id, label_x, label_y, direccion, alphaPAu, 1.0, stoped);
+}
+
 
 double Layer::getFeatureLabelHeight(const char *geom_id) {
 	modMutex->lock();

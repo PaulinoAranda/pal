@@ -773,142 +773,120 @@ namespace pal {
         filterCtx.pal = this;
         obstacles->Search (amin, amax, filteringCallback, (void*) &filterCtx);
 
-        if(this->positionMethod==ANGULAR_FLAG_CROSS_CHK || this->positionMethod==ANGULAR_FLAG_CROSS_CHK_SHORTLINE){
+        if(this->positionMethod==ANGULAR_FLAG_CROSS_CHK || this->positionMethod==ANGULAR_FLAG_CROSS_CHK_SORTLINE){
 
-			for (i = 0;i < prob->nbft;i++) {
-				feat = fFeats->pop_front();
-				feat->feature->cross=false;
-				fFeats->push_back (feat);
-			}
+            for (i = 0;i < prob->nbft;i++) {
+                feat = fFeats->pop_front();
+                feat->feature->cross=false;
+                fFeats->push_back (feat);
+            }
 
-			LinkedList<Feats*> *fFeatsTmp = new LinkedList<Feats*> (ptrFeatsCompare);
-			Feats *featTmp;
-			int ii ;
-			int fFeatsSize1=fFeats->size();
-			for (i = 0;i < fFeatsSize1;++i) {
-				featTmp= fFeats->pop_front();
-				fFeatsTmp->push_back (featTmp);
-				fFeats->push_back (featTmp);
-			}
+            LinkedList<Feats*> *fFeatsTmp = new LinkedList<Feats*> (ptrFeatsCompare);
+            Feats *featTmp;
+            int ii ;
+            int fFeatsSize1=fFeats->size();
+            for (i = 0;i < fFeatsSize1;++i) {
+                featTmp= fFeats->pop_front();
+                fFeatsTmp->push_back (featTmp);
+                fFeats->push_back (featTmp);
+            }
 
-			for (i = 0;i < fFeatsSize1;++i) {
-				featTmp = fFeatsTmp->pop_front();
-				if (featTmp && featTmp->feature->type == GEOS_POINT) {
-					int fFeatsSize=fFeats->size();
-					for ( ii = 0;ii <  fFeatsSize;++ii) {
-						feat = fFeats->pop_front();
-						if (i!=ii && feat && feat->feature->type == GEOS_POINT) {
-							int a = 0;
-							for ( a = 0;a < featTmp->nblp;++a)
-							{
-								int b = 0;
-								//        			for ( b = 0;b < feat->nblp;b++)
-								{
-									if( featTmp->lPos && (!(featTmp->feature->oPointx == feat->feature->oPointx && featTmp->feature->oPointy == feat->feature->oPointy))){
-										double ix,  iy;
-										if(this->positionMethod==ANGULAR_FLAG_CROSS_CHK ){
-											if(featTmp->feature->direccion ){//45º
-												if(feat->feature->direccion){//45º
-													if( computeSegIntersection (featTmp->lPos[a]->x[0], featTmp->lPos[a]->y[0], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
-															feat->lPos[b]->x[0], feat->lPos[b]->y[0], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
-															&ix, &iy)){
-														if(a==0)
-															featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
-														else
-															featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
-														//													feat->feature->cross=true;
-														featTmp->feature->cross=true;
-													}
-													//        								if(dist_euc2d(featTmp->feature->oPointx, featTmp->feature->oPointy, feat->lPos[b]->x[0], feat->lPos[b]->y[0])< feat->feature->distlabel){
-													//        									feat->lPos[b]->cost=feat->lPos[b]->cost+0.1;
-													//        								}
+            for (i = 0;i < fFeatsSize1;++i) {
+                featTmp = fFeatsTmp->pop_front();
+                if (featTmp && featTmp->feature->type == GEOS_POINT) {
+                    int fFeatsSize=fFeats->size();
+                    for ( ii = 0;ii <  fFeatsSize;++ii) {
+                        feat = fFeats->pop_front();
+                        if (i!=ii && feat && feat->feature->type == GEOS_POINT) {
+                            int a = 0;
+                            for ( a = 0;a < featTmp->nblp;++a)
+                            {
+                                int b = 0;
+                                //        			for ( b = 0;b < feat->nblp;b++)
+                                {
+                                    if( featTmp->lPos && (!(featTmp->feature->oPointx == feat->feature->oPointx && featTmp->feature->oPointy == feat->feature->oPointy))){
+                                        double ix,  iy;
+                                        if(this->positionMethod==ANGULAR_FLAG_CROSS_CHK ){
+                                            if(featTmp->feature->direccion ){//45º
+                                                if(feat->feature->direccion){//45º
+                                                    if( computeSegIntersection (featTmp->lPos[a]->x[0], featTmp->lPos[a]->y[0], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
+                                                                                feat->lPos[b]->x[0], feat->lPos[b]->y[0], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
+                                                                                &ix, &iy)){
 
-												}else{
-													if( computeSegIntersection (featTmp->lPos[a]->x[0], featTmp->lPos[a]->y[0], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
-															feat->lPos[b]->x[1], feat->lPos[b]->y[1], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
-															&ix, &iy)){
-														if(a==0)
-															featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
-														else
-															featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
-														//													feat->feature->cross=true;
-														featTmp->feature->cross=true;
-													}
-												}
-											}else{
-												if(feat->feature->direccion){//45º
-													if( computeSegIntersection (featTmp->lPos[a]->x[1], featTmp->lPos[a]->y[1], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
-															feat->lPos[b]->x[0], feat->lPos[b]->y[0], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
-															&ix, &iy)){
-														if(a==0)
-															featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
-														else
-															featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
-														//													feat->feature->cross=true;
-														featTmp->feature->cross=true;
-													}
-												}else{
-													if( computeSegIntersection (featTmp->lPos[a]->x[1], featTmp->lPos[a]->y[1], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
-															feat->lPos[b]->x[1], feat->lPos[b]->y[1], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
-															&ix, &iy)){
-														if(a==0)
-															featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
-														else
-															featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
-														//													feat->feature->cross=true;
-														featTmp->feature->cross=true;
-													}
-												}
-											}
-										}else{
-											double x1,y1;
-										    double minDistance1 = std::numeric_limits<double>::max();
-											for (int var1 = 0; var1 < 4; ++var1) {
-												double dx = featTmp->lPos[a]->x[var1] - featTmp->feature->oPointx ;;
-												    double dy = featTmp->lPos[a]->y[var1] - featTmp->feature->oPointy;
-												    double distance = std::sqrt(dx * dx + dy * dy);
-												    if (distance < minDistance1) {
-												    	x1=featTmp->lPos[a]->x[var1];
-												    	y1=featTmp->lPos[a]->y[var1];
-												    }
-											}
+                                                        featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003*featTmp->feature->hash;
+                                                        featTmp->feature->cross=true;
+                                                    }
+                                                }else{
+                                                    if( computeSegIntersection (featTmp->lPos[a]->x[0], featTmp->lPos[a]->y[0], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
+                                                                                feat->lPos[b]->x[1], feat->lPos[b]->y[1], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
+                                                                                &ix, &iy)){
 
-											double x2,y2;
-										    double minDistance2 = std::numeric_limits<double>::max();
-											for (int var2 = 0; var2 < 4; ++var2) {
-												double dx = feat->lPos[a]->x[var2] - feat->feature->oPointx ;;
-												    double dy = feat->lPos[a]->y[var2] - feat->feature->oPointy;
-												    double distance = std::sqrt(dx * dx + dy * dy);
-												    if (distance < minDistance1) {
-												    	x2=feat->lPos[a]->x[var2];
-												    	y2=feat->lPos[a]->y[var2];
-												    }
-											}
+                                                        featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003*featTmp->feature->hash;
+                                                        featTmp->feature->cross=true;
+                                                    }
+                                                }
+                                            }else{
+                                                if(feat->feature->direccion){//45º
+                                                    if( computeSegIntersection (featTmp->lPos[a]->x[1], featTmp->lPos[a]->y[1], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
+                                                                                feat->lPos[b]->x[0], feat->lPos[b]->y[0], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
+                                                                                &ix, &iy)){
 
-											if( computeSegIntersection (x1, y1, featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
-													x2, y2, feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
-													&ix, &iy)){
-//												if(a==0)
-//													featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
-//												else
-													featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003;
-												featTmp->feature->cross=true;
-											}
-										}
-									}
-								}
-							}
-						}
-						fFeats->push_back (feat);
-					}
-				}
-//				fFeatsTmp->push_back (featTmp);
-			}
-//			for (i = 0;i < prob->nbft;i++) {
-//				featTmp = fFeatsTmp->pop_front();
-//				fFeats->push_back (featTmp);
-//			}
-			delete fFeatsTmp;
+                                                        featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003*featTmp->feature->hash;
+                                                        featTmp->feature->cross=true;
+                                                    }
+                                                }else{
+                                                    if( computeSegIntersection (featTmp->lPos[a]->x[1], featTmp->lPos[a]->y[1], featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
+                                                                                feat->lPos[b]->x[1], feat->lPos[b]->y[1], feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
+                                                                                &ix, &iy)){
+
+                                                        featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003*featTmp->feature->hash;
+                                                        featTmp->feature->cross=true;
+                                                    }
+                                                }
+                                            }
+                                        }else{
+                                            double x1,y1;
+                                            double minDistance1 = std::numeric_limits<double>::max();
+                                            for (int var1 = 0; var1 < 4; ++var1) {
+                                                double dx = featTmp->lPos[a]->x[var1] - featTmp->feature->oPointx ;;
+                                                double dy = featTmp->lPos[a]->y[var1] - featTmp->feature->oPointy;
+                                                double distance = std::sqrt(dx * dx + dy * dy);
+                                                if (distance < minDistance1) {
+                                                    x1=featTmp->lPos[a]->x[var1];
+                                                    y1=featTmp->lPos[a]->y[var1];
+                                                }
+                                            }
+
+                                            double x2,y2;
+                                            double minDistance2 = std::numeric_limits<double>::max();
+                                            for (int var2 = 0; var2 < 4; ++var2) {
+                                                double dx = feat->lPos[a]->x[var2] - feat->feature->oPointx ;;
+                                                double dy = feat->lPos[a]->y[var2] - feat->feature->oPointy;
+                                                double distance = std::sqrt(dx * dx + dy * dy);
+                                                if (distance < minDistance1) {
+                                                    x2=feat->lPos[a]->x[var2];
+                                                    y2=feat->lPos[a]->y[var2];
+                                                }
+                                            }
+
+                                            if( computeSegIntersection (x1, y1, featTmp->feature->oPointx, featTmp->feature->oPointy,  // 1st (segment)
+                                                                        x2, y2, feat->feature->oPointx, feat->feature->oPointy,  // 2nd segment
+                                                                        &ix, &iy)){
+
+                                                featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003*featTmp->feature->hash;
+                                                featTmp->feature->cross=true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        fFeats->push_back (feat);
+                    }
+                }
+            }
+
+            delete fFeatsTmp;
 
         }
 

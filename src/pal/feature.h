@@ -76,6 +76,7 @@ namespace pal {
     protected:
 
         double alphaPAu;
+        double alphaPAuH;
 
         bool direccion;
         bool stoped;

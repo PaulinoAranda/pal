@@ -49,6 +49,7 @@ namespace pal {
 
         double a;
         double alphaPAu;
+        double alphaPAuH;
 
         char *featureId;
         char *lyrName;
@@ -65,6 +66,7 @@ namespace pal {
          * @param lyrName name of the corresponding layer
          * @param userGeom PalGeometry of the feature
          */
+        Label (double x[4], double y[4], double alpha, const char *ftid, const char *lyrName, PalGeometry *userGeom, double alphaPAu, double alphaPAuH);
         Label (double x[4], double y[4], double alpha, const char *ftid, const char *lyrName, PalGeometry *userGeom, double alphaPAu);
 
     public:
@@ -107,6 +109,7 @@ namespace pal {
         double getRotation();
 
         double getAlphaPAu();
+        double getAlphaPAuH();
 
         /**
          * \brief return the name of the layer wich contains the feature

@@ -50,7 +50,7 @@
 
 namespace pal {
 
-    LabelPosition::LabelPosition (int id, double x1, double y1, double w, double h, double alpha,  double alphaPAu, double cost, Feature *feature) : id (id), cost (cost), /*workingCost (0),*/ alpha (alpha), alphaPAu (alphaPAu),feature (feature), nbOverlap (0), w (w), h (h) {
+    LabelPosition::LabelPosition (int id, double x1, double y1, double w, double h, double alpha,  double alphaPAu, double alphaPAuH, double cost, Feature *feature) : id (id), cost (cost), /*workingCost (0),*/ alpha (alpha), alphaPAu (alphaPAu), alphaPAuH (alphaPAuH),feature (feature), nbOverlap (0), w (w), h (h) {
 
     	probFeat=0;
 
@@ -257,7 +257,7 @@ namespace pal {
 //#warning retourner les coord projeté ou pas ?
         //feature->layer->pal->proj->getLatLong(this->x[0], this->y[0], &x, &y);
 
-        return new Label (this->x, this->y, alpha, feature->uid, feature->layer->name, feature->userGeom , this->alphaPAu);
+        return new Label (this->x, this->y, alpha, feature->uid, feature->layer->name, feature->userGeom , this->alphaPAu, this->alphaPAuH);
     }
 
 

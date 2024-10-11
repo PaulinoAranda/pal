@@ -89,6 +89,7 @@ namespace pal {
 
         double alpha;
         double alphaPAu;
+        double alphaPAuH;
 
 
         Feature *feature;
@@ -120,7 +121,7 @@ namespace pal {
          */
         LabelPosition (int id, double x1, double y1,
                        double w, double h,
-                       double alpha, double alphaPAu, double cost,
+                       double alpha, double alphaPAu, double alphaPAuH, double cost,
                        Feature *feature);
 
         /**

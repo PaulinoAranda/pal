@@ -36,7 +36,7 @@
 
 namespace pal {
 
-    Label::Label (double x[4], double y[4], double alpha, const char *ftid, const char *lyrName, PalGeometry *userGeom, double alphaPAu) : alphaPAu(alphaPAu), a (alpha), userGeom (userGeom) {
+    Label::Label (double x[4], double y[4], double alpha, const char *ftid, const char *lyrName, PalGeometry *userGeom, double alphaPAu, double alphaPAuH) : alphaPAu(alphaPAu), alphaPAuH(alphaPAuH), a (alpha), userGeom (userGeom) {
 
         for (int i = 0;i < 4;i++) {
             this->x[i] = x[i];
@@ -49,6 +49,11 @@ namespace pal {
         this->lyrName = new char[strlen (lyrName) +1];
         strcpy (this->lyrName, lyrName);
     }
+
+    Label::Label (double x[4], double y[4], double alpha, const char *ftid, const char *lyrName, PalGeometry *userGeom, double alphaPAu):
+        Label (x,  y, alpha, ftid, lyrName, userGeom,  alphaPAu,1.0){
+     }
+
 
     Label::~Label() {
         delete[] featureId;
@@ -83,7 +88,9 @@ namespace pal {
     double Label::getAlphaPAu() {
         return alphaPAu;
     }
-
+    double Label::getAlphaPAuH() {
+          return alphaPAuH;
+      }
 
     const char *Label::getLayerName() {
         return lyrName;
