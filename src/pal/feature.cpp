@@ -117,6 +117,8 @@ namespace pal
 
         distlabel = 0;
         currentAccess = 0;
+        alphaPAu= M_PI + M_PI / 4.;
+        alphaPAuH=1;
 
         accessMutex = new SimpleMutex ();
     }
