@@ -88,7 +88,7 @@ namespace pal
         x = feat->x;
         y = feat->y;
 
-        alphaPAu = 0;
+
         int i;
 
         nbSelfObs = feat->nbHoles;
@@ -117,7 +117,7 @@ namespace pal
 
         distlabel = 0;
         currentAccess = 0;
-        alphaPAu= M_PI + M_PI / 4.;
+        alphaPAu=  M_PI;
         alphaPAuH=1;
 
         accessMutex = new SimpleMutex ();
@@ -248,16 +248,16 @@ namespace pal
 
                 }
                 bool direcionBis = true;
-                if (direccion)
-                {
-                    if (!((alpha > M_PI / 4.) && (alpha < M_PI + M_PI / 4.)))
-                        direcionBis = false;
-                }
-                else
-                {
-                    if (!((alpha > a90 + M_PI / 4.) && (alpha < M_PI + a90 + M_PI / 4.)))
-                        direcionBis = false;
-                }
+//                if (direccion)
+//                {
+//                    if (!((alpha > M_PI / 4.) && (alpha < M_PI + M_PI / 4.)))
+//                        direcionBis = false;
+//                }
+//                else
+//                {
+//                    if (!((alpha > a90 + M_PI / 4.) && (alpha < M_PI + a90 + M_PI / 4.)))
+//                        direcionBis = false;
+//                }
                 for (ii = 1; ii <= distanceNbp; ii++)
                 {
                     int icost = 0;
