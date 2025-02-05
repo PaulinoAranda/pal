@@ -15,9 +15,16 @@
 #include "pal/pal.h"
 #include "pal/layer.h"
 
+#include <iomanip>
 #include <unistd.h>
 #include <sstream>
 #include <iostream>
+
+
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 TEST_CASE("Geos Geometries", "Creation of Features from Geos")
 {
@@ -793,7 +800,7 @@ TEST_CASE("Geos Labelling", "Geos labelling")
             pal::Units::PIXEL, ( double)0.1, true, true, false);
 
     std::cout << " testSquares" << "\n";
-    testSquares(&pal, layer, layer2,layerA, 2);
+//    testSquares(&pal, layer, layer2,layerA, 2);
     std::cout << "testSquares END" << "\n";
     sleep(1);
     /*
@@ -808,3 +815,191 @@ TEST_CASE("Geos Labelling", "Geos labelling")
      };
      */
 }
+
+
+
+
+
+
+void
+test2 (pal::Pal *pal,
+             pal::Layer *layer
+             )
+{
+
+    std::list<Geom*> geoms;
+
+    bool sentidoDeDerechaAIzquierda=true;
+
+    {
+        std::string wtk = "POINT (9153 1235)";
+        std::string id = "A";
+        Geom *geom = new Geom (wtk.c_str ());
+        geom->setGeomId (id.c_str ());
+        geoms.push_back (geom);
+        layer->registerFeature (id.c_str (), geom, (double) 121, (double) 69);
+        layer->setFeatureDistlabel (id.c_str (), 42);
+        double angle=0;
+
+        std::cout <<"ANGULO "<< angle * (180.0/M_PI) << std::endl;
+        layer->setFeatureLabelSize (id.c_str (), (double) 121, (double) 69, sentidoDeDerechaAIzquierda, angle, 1., false);
+        /*
+         * void Layer::setFeatureLabelSize(const char *geom_id, double label_x,
+  double label_y, bool direccion, double alphaPAu, double alphaPAuH, bool stoped) {
+         *
+         */
+    }
+
+    {
+        std::string wtk = "POINT (9155 1237)";
+        std::string id = "B";
+        Geom *geom = new Geom (wtk.c_str ());
+        geom->setGeomId (id.c_str ());
+        geoms.push_back (geom);
+        layer->registerFeature (id.c_str (), geom, (double) 121, (double) 69);
+        layer->setFeatureDistlabel (id.c_str (), 42);
+        double angle=0;
+
+        std::cout <<"ANGULO "<< angle * (180.0/M_PI) << std::endl;
+        layer->setFeatureLabelSize (id.c_str (), (double) 121, (double) 69, sentidoDeDerechaAIzquierda, angle, 1., false);
+
+
+    }
+
+    {
+         std::string wtk = "POINT (9150 1235)";
+         std::string id = "C";
+         Geom *geom = new Geom (wtk.c_str ());
+         geom->setGeomId (id.c_str ());
+         geoms.push_back (geom);
+         layer->registerFeature (id.c_str (), geom, (double) 121, (double) 69);
+         layer->setFeatureDistlabel (id.c_str (), 42);
+         double angle=0;
+
+         std::cout <<"ANGULO "<< angle * (180.0/M_PI) << std::endl;
+         layer->setFeatureLabelSize (id.c_str (), (double) 121, (double) 69, sentidoDeDerechaAIzquierda, angle, 1., false);
+
+     }
+
+    {
+            std::string wtk = "POINT (9152 1234)";
+            std::string id = "D";
+            Geom *geom = new Geom (wtk.c_str ());
+            geom->setGeomId (id.c_str ());
+            geoms.push_back (geom);
+            layer->registerFeature (id.c_str (), geom, (double) 121, (double) 69);
+            layer->setFeatureDistlabel (id.c_str (), 42);
+            double angle=0;
+
+            std::cout <<"ANGULO "<< angle * (180.0/M_PI) << std::endl;
+            layer->setFeatureLabelSize (id.c_str (), (double) 121, (double) 69, sentidoDeDerechaAIzquierda, angle, 1., false);
+
+        }
+
+
+
+     pal::PalStat *stats;
+
+    double xmin = 0.;
+    double xmax = 9155;
+//    double ymin = dy *4.;
+    double ymin = -2160;
+    double ymax = 2160;
+
+    double bbox[4] =
+    { xmin, ymin, xmax, ymax };
+// int val = 15359;
+    for (int var = 0; var < 10; ++var)
+    {
+        std::cout << "--------------" << var << "\n";
+        std::list<pal::Label*> *labels = pal->labeller (1., bbox, &stats, true);
+//        std::cout << "2-------------" << var << "\n";
+        for (auto &front : *labels)
+        {
+
+
+
+            if (std::string (front->getFeatureId ()).compare ("A") == 0)
+              {
+                  std::cout << "-------Move B to -------" << 9155-var << "\n";
+                  std::string wtk = std::string ("POINT (").append (std::to_string (9155-var)).append (std::string (" 1237)"));
+  //                        int corelationId = ((DatoTrazaRadar*) (((*it)->getGeometry ())))->getCorrelationId ();
+                  ((Geom*) front->getGeometry ())->setGeosGeometry (wtk.c_str ());
+
+              }
+
+
+
+            {
+
+                layer->setFeatureLabelSize (front->getFeatureId (), (double) 127, (double) 69, sentidoDeDerechaAIzquierda, (double) front->getAlphaPAu (),(double) front->getAlphaPAuH (), false);
+                std::cout << "ID: " << front->getFeatureId ()  << "  apha: "<<std::setprecision (15) << (double)front->getAlphaPAu () * (180.0/M_PI)<< "  "<< (double)front->getAlphaPAuH ()<<"  X " << front->getX (0) << " " << front->getX (1) << " " << front->getX (2) << " " << front->getX (3) << " Y " << front->getY (0) << " "
+                        << front->getY (1) << " " << front->getY (2) << " " << front->getY (3) << "\n";
+            }
+        }
+        delete labels;
+    }
+
+    while (geoms.size () > 0)
+    {
+        Geom *geostmp = geoms.front ();
+        std::cout << " unregisterFeature " << geostmp->getGeomId () << "\n";
+
+        layer->unregisterFeature (geostmp->getGeomId ().c_str ());
+
+        delete geostmp;
+
+        geoms.pop_front ();
+
+    }
+
+    std::cout << " END" << "\n";
+}
+
+
+
+
+
+TEST_CASE("Geos Labelling2", "Geos labelling2")
+{
+    pal::Pal pal;
+    pal.setSearch (pal::SearchMethod::CHAIN);
+
+    pal.setPointP (8);
+    pal.setPointPL(2);
+    pal.setPosMethod(pal::PosMethod::ANGULAR_FLAG_CROSS_CHK_SORTLINE);
+    pal.setMinimunDiff(0);
+
+
+    pal.setMapUnit (pal::Units::PIXEL);
+
+     pal::Layer * layer = pal.addLayer ("main", ( double)-1, ( double)-1, pal::P_POINT,
+            pal::Units::PIXEL, ( double)0.1, true, true, true);
+     layer->setToLabel(true);
+
+
+
+    std::cout << " test2" << "\n";
+    test2(&pal, layer);
+    std::cout << "test2 END" << "\n";
+
+
+//    pal.setPointPL(1);
+//    test2(&pal, layer);
+
+
+
+    sleep(1);
+    /*
+     BENCHMARK("Test 2x2 labelling"){
+     return testSquares(&pal, layer, 2);
+     };
+     BENCHMARK("Test 5x5 labelling"){
+     return testSquares(&pal, layer, 5);
+     };
+     BENCHMARK("Test 10x10 labelling"){
+     return testSquares(&pal, layer, 10);
+     };
+     */
+}
+

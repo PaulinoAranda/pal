@@ -157,6 +157,7 @@ namespace pal {
         SearchMethod searchMethod;
         PosMethod  positionMethod;
         bool enableFrezzeIfPosibleCrooss;
+        int minimunDiff;
         /*
          * POPMUSIC Tuning
          */
@@ -423,6 +424,18 @@ namespace pal {
          * @return the search method
          */
         SearchMethod getSearch();
+
+            int
+            getMinimunDiff () const
+            {
+                return minimunDiff;
+            }
+
+            void
+            setMinimunDiff (int minimunDiff)
+            {
+                this->minimunDiff = minimunDiff;
+            }
     };
 } // end namespace pal
 #endif

@@ -53,10 +53,17 @@
 #include <string>
 #include <climits>
 #include <cstdint>
+#include <random>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+
+bool randomBool() {
+    static auto gen = std::bind(std::uniform_int_distribution<>(0,1),std::default_random_engine());
+    return gen();
+}
+
 
 namespace pal
 {
@@ -102,7 +109,7 @@ namespace pal
 
         this->type = feat->type;
         stoped = false;
-        direccion = true;
+        direccion = randomBool();
         oPointx = 0;
         oPointy = 0;
         the_geom = NULL;
@@ -118,7 +125,7 @@ namespace pal
         distlabel = 0;
         currentAccess = 0;
 
-        alphaPAu=  M_PI;
+        alphaPAu=  M_PI/2.;
         alphaPAuH=1;
 
         accessMutex = new SimpleMutex ();
@@ -248,17 +255,19 @@ namespace pal
                         cross = false;
 
                 }
+//                std::cout << "cross " << cross << std::endl;
                 bool direcionBis = true;
-//                if (direccion)
-//                {
-//                    if (!((alpha > M_PI / 4.) && (alpha < M_PI + M_PI / 4.)))
-//                        direcionBis = false;
-//                }
-//                else
-//                {
-//                    if (!((alpha > a90 + M_PI / 4.) && (alpha < M_PI + a90 + M_PI / 4.)))
-//                        direcionBis = false;
-//                }
+//                direcionBis=direccion;
+                if (direccion)
+                {
+                    if (!((alpha > M_PI / 4.) && (alpha < M_PI + M_PI / 4.)))
+                        direcionBis = false;
+                }
+                else
+                {
+                    if (!((alpha > a90 + M_PI / 4.) && (alpha < M_PI + a90 + M_PI / 4.)))
+                        direcionBis = false;
+                }
                 for (ii = 1; ii <= distanceNbp; ii++)
                 {
                     int icost = 0;
@@ -381,14 +390,14 @@ namespace pal
                             }
                             else
                             {
-                                if (alphaPAuH == ii)
+                                if (alphaPAuH == ii && i==0)
                                 {
-                                    cost = (0.0002 + (extraCost * 0.0020 * double (icost) / double (nbp - 1))) ;
+                                    cost = (0.00019 + (extraCost * 0.0020 * double (icost) / double (nbp - 1))) ;
                                 }
-                                else if( ii==1 && alphaPAuH != 1 )
-                                {
-                                    cost = (0.0002 + (extraCost * 0.0020 * double (icost) / double (nbp - 1))) + ((extraCost * 0.0020 * double (nbp) / double (nbp - 1)) * (double) (ii - 1)+ 0.0001);
-                                }
+//                                else if( ii==1 && alphaPAuH != 1 )
+//                                {
+//                                    cost = (0.0002 + (extraCost * 0.0020 * double (icost) / double (nbp - 1))) + ((extraCost * 0.0020 * double (nbp) / double (nbp - 1)) * (double) (ii - 1)+ 0.0001);
+//                                }
                                 else
                                 {
                                     cost = (0.0002 + (extraCost * 0.0020 * double (icost) / double (nbp - 1))) + ((extraCost * 0.0020 * double (nbp) / double (nbp - 1)) * (double) (ii - 1));
@@ -398,6 +407,7 @@ namespace pal
                         }
                         cost = cost * hash;
                         (*lPos)[i + ((ii - 1) * nbp)] = new LabelPosition (i + ((ii - 1) * nbp), lx, ly, xrm, yrm, 0, alpha, ii, cost, this);
+//                        std::cout<< "ii:"<< ii<<" i:"<< i  << " alpha:" << (180.0/M_PI)* alpha <<" cost:"<< cost<< std::endl;
 
                         icost += inc;
 

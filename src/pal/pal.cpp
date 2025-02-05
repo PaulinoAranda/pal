@@ -99,6 +99,7 @@ namespace pal {
         searchMethod = CHAIN;
         positionMethod=ANGULAR_FLAG;
         enableFrezzeIfPosibleCrooss=false;
+        minimunDiff=5;
 
         setSearch (CHAIN);
 
@@ -804,7 +805,7 @@ namespace pal {
                                 int b = 0;
                                 //        			for ( b = 0;b < feat->nblp;b++)
                                 {
-                                    if( featTmp->lPos && (!(featTmp->feature->oPointx == feat->feature->oPointx && featTmp->feature->oPointy == feat->feature->oPointy))){
+                                    if( featTmp->lPos && (!( std::abs(featTmp->feature->oPointx - feat->feature->oPointx)<this->minimunDiff  && std::abs(featTmp->feature->oPointy- feat->feature->oPointy)<this->minimunDiff))){
                                         double ix,  iy;
                                         if(this->positionMethod==ANGULAR_FLAG_CROSS_CHK ){
                                             if(featTmp->feature->direccion ){//45º
@@ -848,10 +849,11 @@ namespace pal {
                                             double x1,y1;
                                             double minDistance1 = std::numeric_limits<double>::max();
                                             for (int var1 = 0; var1 < 4; ++var1) {
-                                                double dx = featTmp->lPos[a]->x[var1] - featTmp->feature->oPointx ;;
+                                                double dx = featTmp->lPos[a]->x[var1] - featTmp->feature->oPointx ;
                                                 double dy = featTmp->lPos[a]->y[var1] - featTmp->feature->oPointy;
                                                 double distance = std::sqrt(dx * dx + dy * dy);
                                                 if (distance < minDistance1) {
+                                                    minDistance1=distance;
                                                     x1=featTmp->lPos[a]->x[var1];
                                                     y1=featTmp->lPos[a]->y[var1];
                                                 }
@@ -863,7 +865,8 @@ namespace pal {
                                                 double dx = feat->lPos[a]->x[var2] - feat->feature->oPointx ;;
                                                 double dy = feat->lPos[a]->y[var2] - feat->feature->oPointy;
                                                 double distance = std::sqrt(dx * dx + dy * dy);
-                                                if (distance < minDistance1) {
+                                                if (distance < minDistance2) {
+                                                    minDistance2=distance;
                                                     x2=feat->lPos[a]->x[var2];
                                                     y2=feat->lPos[a]->y[var2];
                                                 }
@@ -875,6 +878,8 @@ namespace pal {
 
                                                 featTmp->lPos[a]->cost=featTmp->lPos[a]->cost+0.003*featTmp->feature->hash;
                                                 featTmp->feature->cross=true;
+//                                                std::cout<<"cross "<<a<<" "<<   featTmp->feature->uid << " cost: "<<featTmp->lPos[a]->cost<<std::endl;
+
                                             }
                                         }
                                     }
