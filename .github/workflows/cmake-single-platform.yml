@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: boost and python3
-      run: sudo apt-get update && sudo apt-get install -yq libgeographic-dev libgeos++-dev  catch2 
+      run: sudo apt-get update && sudo apt-get install -yq libgeos++-dev  catch2   libgeographiclib-dev
 
 
     - name: Configure CMake
