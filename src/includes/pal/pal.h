@@ -84,14 +84,13 @@ namespace pal {
 
     /** Search method to use */
     enum _posMethod {
-    	ANGULAR_FLAG = 0,
-		ANGULAR_FLAG_CROSS_CHK = 1,
-		TOP_FLAG = 2,
-		TOP_CENTER = 3,
-		      ANGULAR_FLAG_CROSS_CHK_SORTLINE = 4,
-		      ANGULAR_FLAG_SORTLINE = 5
-
-
+        ANGULAR_FLAG = 0,
+        ANGULAR_FLAG_CROSS_CHK = 1,
+        TOP_FLAG = 2,
+        TOP_CENTER = 3,
+        ANGULAR_FLAG_CROSS_CHK_SHORTLINE = 4,
+        ANGULAR_FLAG_SHORTLINE = 5,
+        ANGULAR_FLAG_CROSS_CHK_SHORTLINE_SHORTSTEP = 6,
     };
 
     /** Typedef for _Units enumeration */

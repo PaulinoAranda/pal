@@ -967,7 +967,7 @@ TEST_CASE("Geos Labelling2", "Geos labelling2")
 
     pal.setPointP (8);
     pal.setPointPL(2);
-    pal.setPosMethod(pal::PosMethod::ANGULAR_FLAG_CROSS_CHK_SORTLINE);
+    pal.setPosMethod(pal::PosMethod::ANGULAR_FLAG_CROSS_CHK_SHORTLINE);
     pal.setMinimunDiff(0);
 
 

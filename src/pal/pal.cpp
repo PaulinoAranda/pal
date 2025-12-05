@@ -774,7 +774,7 @@ namespace pal {
         filterCtx.pal = this;
         obstacles->Search (amin, amax, filteringCallback, (void*) &filterCtx);
 
-        if(this->positionMethod==ANGULAR_FLAG_CROSS_CHK || this->positionMethod==ANGULAR_FLAG_CROSS_CHK_SORTLINE){
+        if(this->positionMethod==ANGULAR_FLAG_CROSS_CHK || this->positionMethod==ANGULAR_FLAG_CROSS_CHK_SHORTLINE || this->positionMethod==ANGULAR_FLAG_CROSS_CHK_SHORTLINE_SHORTSTEP){
 
             for (i = 0;i < prob->nbft;i++) {
                 feat = fFeats->pop_front();
@@ -846,6 +846,7 @@ namespace pal {
                                                 }
                                             }
                                         }else{
+                                            //ANGULAR_FLAG_CROSS_CHK_SHORTLINE  ANGULAR_FLAG_CROSS_CHK_SHORTLINE_SHORTSTEP
                                             double x1,y1;
                                             double minDistance1 = std::numeric_limits<double>::max();
                                             for (int var1 = 0; var1 < 4; ++var1) {

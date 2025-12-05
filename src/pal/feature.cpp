@@ -182,6 +182,39 @@ namespace pal
         return uid;
     }
 
+    inline double
+    Feature::levelsLabel (int ii)
+    {
+        double levelsLabel=ii;
+
+
+        switch (layer->pal->positionMethod)
+        {
+            case ANGULAR_FLAG:
+            case ANGULAR_FLAG_CROSS_CHK:
+            case ANGULAR_FLAG_CROSS_CHK_SHORTLINE:
+            case ANGULAR_FLAG_SHORTLINE:
+            {
+                levelsLabel= (double) ((ii + ((ii - 1) * 2)));
+            }
+            break;
+
+            case ANGULAR_FLAG_CROSS_CHK_SHORTLINE_SHORTSTEP:
+            {
+                levelsLabel = (double) (((double)ii + (((double)ii - 1.) /2.)));
+            }
+            break;
+            case TOP_FLAG:
+            case TOP_CENTER:
+            default:{
+
+            }
+            break;
+        }
+        return levelsLabel;
+
+    }
+
     int
     Feature::setPositionForPoint (double x,
                                   double y,
@@ -223,8 +256,9 @@ namespace pal
         {
             case ANGULAR_FLAG:
             case ANGULAR_FLAG_CROSS_CHK:
-            case ANGULAR_FLAG_CROSS_CHK_SORTLINE:
-            case ANGULAR_FLAG_SORTLINE:
+            case ANGULAR_FLAG_CROSS_CHK_SHORTLINE:
+            case ANGULAR_FLAG_SHORTLINE:
+            case ANGULAR_FLAG_CROSS_CHK_SHORTLINE_SHORTSTEP:
             {
 
                 int distanceNbp = layer->pal->point_pl;
@@ -275,8 +309,8 @@ namespace pal
 
                     if (distlabel > 0)
                     {
-                        gamma1 = atan2 (yrm / 2., distlabel * (double) (ii + ((ii - 1) * 2)) + xrm / 2.);
-                        gamma2 = atan2 (xrm / 2., distlabel * (double) (ii + ((ii - 1) * 2)) + yrm / 2.);
+                        gamma1 = atan2 (yrm / 2., distlabel * levelsLabel (ii) + xrm / 2.);
+                        gamma2 = atan2 (xrm / 2., distlabel * levelsLabel (ii) + yrm / 2.);
                     }
                     else
                     {
@@ -306,7 +340,7 @@ namespace pal
 
                         if (alpha < gamma1 || alpha > a360 - gamma1)
                         {     // on the right
-                            lx += distlabel * (double) (ii + ((ii - 1) * 2));
+                            lx += distlabel * levelsLabel (ii);
                             double iota = (alpha + gamma1);
                             if (iota > a360 - gamma1)
                                 iota -= a360;
@@ -315,38 +349,38 @@ namespace pal
                         }
                         else if (alpha < a90 - gamma2)
                         {     // top-right
-                            lx += distlabel * (double) (ii + ((ii - 1) * 2)) * cos (alpha);
-                            ly += distlabel * (double) (ii + ((ii - 1) * 2)) * sin (alpha);
+                            lx += distlabel * levelsLabel (ii) * cos (alpha);
+                            ly += distlabel * levelsLabel (ii) * sin (alpha);
                         }
                         else if (alpha < a90 + gamma2)
                         {     // top
                             lx += -xrm * (alpha - a90 + gamma2) / (2. * gamma2);
-                            ly += distlabel * (double) (ii + ((ii - 1) * 2));
+                            ly += distlabel * levelsLabel (ii);
                         }
                         else if (alpha < a180 - gamma1)
                         {     // top left
-                            lx += distlabel * (double) (ii + ((ii - 1) * 2)) * cos (alpha) - xrm;
-                            ly += distlabel * (double) (ii + ((ii - 1) * 2)) * sin (alpha);
+                            lx += distlabel * levelsLabel (ii) * cos (alpha) - xrm;
+                            ly += distlabel * levelsLabel (ii) * sin (alpha);
                         }
                         else if (alpha < a180 + gamma1)
                         {     // left
-                            lx += -distlabel * (double) (ii + ((ii - 1) * 2)) - xrm;
+                            lx += -distlabel * levelsLabel (ii) - xrm;
                             ly += -(alpha - a180 + gamma1) * yrm / (2. * gamma1);
                         }
                         else if (alpha < a270 - gamma2)
                         {     // down - left
-                            lx += distlabel * (double) (ii + ((ii - 1) * 2)) * cos (alpha) - xrm;
-                            ly += distlabel * (double) (ii + ((ii - 1) * 2)) * sin (alpha) - yrm;
+                            lx += distlabel * levelsLabel (ii) * cos (alpha) - xrm;
+                            ly += distlabel * levelsLabel (ii) * sin (alpha) - yrm;
                         }
                         else if (alpha < a270 + gamma2)
                         {     // down
-                            ly += -distlabel * (double) (ii + ((ii - 1) * 2)) - yrm;
+                            ly += -distlabel * levelsLabel (ii) - yrm;
                             lx += -xrm + (alpha - a270 + gamma2) * xrm / (2. * gamma2);
                         }
                         else if (alpha < a360)
                         {
-                            lx += distlabel * ((double) (ii + ((ii - 1) * 2))) * cos (alpha);
-                            ly += distlabel * (double) (ii + ((ii - 1) * 2)) * sin (alpha) - yrm;
+                            lx += distlabel * levelsLabel (ii) * cos (alpha);
+                            ly += distlabel * levelsLabel (ii) * sin (alpha) - yrm;
                         }
                         else
                         {
